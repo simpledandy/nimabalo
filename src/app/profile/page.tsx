@@ -71,13 +71,13 @@ export default function ProfilePage() {
             />
           </label>
           <button className="btn w-full" onClick={save} disabled={saving}>
-            Nimabalo profilini saqlash
+            Saqlash
           </button>
           {msg && <div className="text-green-600 text-sm">{msg}</div>}
         </div>
         {/* BADGES */}
         <div className="mt-4">
-          <h2 className="text-lg font-semibold mb-2">Badge’laringiz</h2>
+          <h2 className="text-lg font-semibold mb-2">Yorliqlaringiz</h2>
           <ul className="flex flex-wrap gap-2">
             {/* Example badges, replace with dynamic badges from Supabase */}
             <li className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-semibold">Birinchi savol</li>

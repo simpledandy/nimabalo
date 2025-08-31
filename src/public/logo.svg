@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="280" height="70" viewBox="0 0 280 70" fill="none">
+  <!-- Background is transparent for flexibility -->
+  
+  <!-- Icon (chat bubble with ? inside) -->
+  <circle cx="35" cy="35" r="30" fill="#1EB2A6"/>
+  <path d="M25 25h20v10H35l-10 10V25z" fill="white" />
+  <text x="35" y="42" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="bold" fill="#1EB2A6">?</text>
+  
+  <!-- Nimabalo Text -->
+  <text x="80" y="45" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="34" font-weight="700" fill="#0C4A6E">
+    Nima
+    <tspan fill="#16A34A">balo</tspan>
+  </text>
+</svg>

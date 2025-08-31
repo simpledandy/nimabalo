@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: "Nimabalo",
   description: "Savollaringizga javob toping",
   icons: {
-    icon: "../public/favicon.svg",
+    icon: "/favicon.svg",
   },
 };
 
@@ -14,6 +14,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+      </head>
       <body>
         <NavBar />
         <main className="container py-6">{children}</main>

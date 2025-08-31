@@ -12,29 +12,25 @@ export default function NavBar() {
   }
 
   return (
-    <header className="fixed top-0 left-0 w-full z-20">
-      <nav className="container flex items-center justify-between py-2">
-        <div className="flex items-center gap-2">
-          <Link href="/" className="icon-btn ml-1" title="Nimabalo bosh sahifa">
-            <svg width="28" height="28" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#2563eb"/><text x="12" y="16" textAnchor="middle" fontSize="12" fill="#fff" fontWeight="bold">N</text></svg>
+    <header className="fixed top-0 left-0 w-full z-20 bg-transparent" style={{height:'72px'}}>
+      <nav className="w-full h-full flex items-center justify-between" style={{height:'100%'}}>
+        {/* Logo: far left, bigger, vertically centered */}
+        <div className="flex items-center h-full pl-4">
+          <Link href="/" className="icon-btn p-0 flex items-center" title="Nimabalo bosh sahifa">
+            <img src="/logo.svg" alt="Nimabalo" className="h-16 w-auto" style={{display:'block', maxHeight:'64px'}} />
           </Link>
         </div>
-        <div className="flex items-center gap-2">
-          {user ? (
-            <>
-              <Link href="/profile" className="icon-btn" title="Nimabalo profil">
-                <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" fill="#2563eb"/><rect x="6" y="14" width="12" height="6" rx="3" fill="#2563eb"/></svg>
-              </Link>
-              <button onClick={handleSignOut} className="icon-btn" title="Nimabalo'dan chiqish">
-                <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><rect x="4" y="11" width="12" height="2" fill="#2563eb"/><polygon points="16,7 22,12 16,17" fill="#2563eb"/></svg>
-              </button>
-            </>
-          ) : (
-            <Link href="/auth" className="icon-btn" title="Nimabalo'ga kirish">
-              <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><rect x="8" y="11" width="12" height="2" fill="#2563eb"/><polygon points="6,7 0,12 6,17" fill="#2563eb"/></svg>
+        {/* Profile: far right, vertically centered (only if logged in) */}
+        {user && (
+          <div className="flex items-center h-full pr-4 gap-2">
+            <Link href="/profile" className="icon-btn flex items-center" title="Nimabalo profil">
+              <svg width="28" height="28" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" fill="#0C4A6E"/><rect x="6" y="14" width="12" height="6" rx="3" fill="#0C4A6E"/></svg>
             </Link>
-          )}
-        </div>
+            <button onClick={handleSignOut} className="icon-btn flex items-center" title="Nimabalo'dan chiqish">
+              <svg width="28" height="28" fill="none" viewBox="0 0 24 24"><rect x="4" y="11" width="12" height="2" fill="#0C4A6E"/><polygon points="16,7 22,12 16,17" fill="#0C4A6E"/></svg>
+            </button>
+          </div>
+        )}
       </nav>
       <style jsx>{`
         .icon-btn {
@@ -43,8 +39,8 @@ export default function NavBar() {
           border: none;
           padding: 4px;
           border-radius: 50%;
-          font-size: 1.5rem;
-          color: #2563eb;
+          font-size: 1.7rem;
+          color: #0C4A6E;
           transition: background 0.15s;
         }
         .icon-btn:hover {

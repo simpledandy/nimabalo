@@ -37,7 +37,7 @@ export default function QuestionDetailPage() {
     setErr('');
     try {
       const body = answerText.trim();
-      if (body.length < 2) throw new Error('Answer is too short.');
+      if (body.length < 2) throw new Error('Javob juda qisqa.');
       const { error } = await supabase.from('answers').insert({
         question_id: id,
         user_id: user!.id,
@@ -52,7 +52,7 @@ export default function QuestionDetailPage() {
         .order('created_at', { ascending: false });
       if (data) setAnswers(data);
     } catch (e: any) {
-      setErr(e.message ?? 'Failed to post answer');
+      setErr(e.message ?? 'Javobni yuborishda xatolik yuz berdi');
     } finally {
       setPosting(false);
     }
@@ -66,12 +66,12 @@ export default function QuestionDetailPage() {
       <div className="card">
         <h1 className="text-2xl font-bold">{q.title}</h1>
         {q.body && <p className="mt-2 whitespace-pre-wrap">{q.body}</p>}
-  <p className="text-xs text-gray-500 mt-3">So'ralgan vaqti: {new Date(q.created_at).toLocaleString()}</p>
+        <p className="text-xs text-gray-500 mt-3">So'ralgan vaqti: {new Date(q.created_at).toLocaleString()}</p>
       </div>
 
       <div className="space-y-3">
-  <h2 className="text-lg font-semibold">Javoblar ({answers.length})</h2>
-  {answers.length === 0 && <div className="card">Hali javoblar yo'q.</div>}
+        <h2 className="text-lg font-semibold">Javoblar ({answers.length})</h2>
+        {answers.length === 0 && <div className="card">Hali javoblar yo'q.</div>}
         <ul className="space-y-3">
           {answers.map(a => (
             <li key={a.id} className="card">
@@ -85,7 +85,7 @@ export default function QuestionDetailPage() {
       </div>
 
       <div className="card space-y-2">
-  <h3 className="font-medium">Bir balo deb qo'ying...</h3>
+        <h3 className="font-medium">Bir balo deb qo'ying...</h3>
         {!user ? (
           <p className="text-sm text-gray-600">Javob yozish uchun tizimga kiring.</p>
         ) : (
@@ -96,7 +96,7 @@ export default function QuestionDetailPage() {
               value={answerText}
               onChange={(e) => setAnswerText(e.target.value)}
             />
-            {err && <p className="text-sm text-red-600">{err === 'Answer is too short.' ? 'Javob juda qisqa.' : err === 'Failed to post answer' ? 'Javobni yuborishda xatolik yuz berdi' : err}</p>}
+            {err && <p className="text-sm text-red-600">{err}</p>}
             <button
               onClick={postAnswer}
               disabled={posting || answerText.trim().length < 2}
