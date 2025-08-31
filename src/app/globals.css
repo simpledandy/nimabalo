@@ -1,26 +1,44 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+html, body {
+  height: 100%;
+  font-family: 'Nunito', 'Noto Sans', 'Arial', sans-serif;
+  background: repeating-linear-gradient(135deg, #f8fafc 0px, #f8fafc 40px, #e0e7ef 40px, #e0e7ef 80px);
 }
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  @apply bg-gradient-to-br from-yellow-50 via-blue-50 to-white text-gray-900;
+}
+.container {
+  @apply max-w-3xl mx-auto px-4;
+}
+.btn {
+  @apply inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-6 py-3 text-base font-semibold shadow-md hover:from-blue-700 hover:to-cyan-600 transition-all duration-150;
+}
+.btn-secondary {
+  @apply inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white text-blue-700 px-6 py-3 text-base font-semibold hover:bg-blue-50 shadow-sm;
+}
+.input {
+  @apply w-full rounded-xl border border-blue-400 px-4 py-3 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 shadow text-gray-800;
+}
+.textarea {
+  @apply w-full rounded-xl border border-blue-400 px-4 py-3 min-h-[120px] bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 shadow text-gray-800;
+}
+.card {
+  @apply rounded-2xl border border-blue-300 bg-white p-6 shadow-xl text-gray-900;
+  backdrop-filter: blur(2px);
+}
+/* Cozy heading */
+.cozy-title {
+  @apply text-3xl font-extrabold mb-4 tracking-tight;
+  color: #00eaff;
+  letter-spacing: 0.01em;
+  text-shadow: 0 2px 8px #00eaff33;
+}
+/* Cozy subtitle */
+.cozy-subtitle {
+  @apply text-lg mb-2;
+  color: #6f7bfd;
+  text-shadow: 0 1px 4px #6f7bfd33;
 }
