@@ -4,7 +4,11 @@ import { useEffect, useState } from 'react';
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from './supabaseClient';
 
-export function useSession() {
+/**
+ * Custom React hook to get the current Supabase user and session.
+ * @returns {{ user: User | null; session: Session | null; loading: boolean }}
+ */
+export function useSession(): { user: User | null; session: Session | null; loading: boolean } {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
