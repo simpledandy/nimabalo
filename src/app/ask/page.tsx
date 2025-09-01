@@ -18,7 +18,7 @@ export default function AskPage() {
 
   if (!loading && !user) {
     return (
-      <div className="card uzbek-pattern">
+      <div className="card uzbek-pattern animate-scale-in hover-lift">
         <p className="mb-3 text-lg">Savol berish uchun tizimga kiring.</p>
         <Link href="/auth" className="btn">Kirishga o'tish</Link>
       </div>
@@ -46,9 +46,9 @@ export default function AskPage() {
   }
 
   return (
-    <div className="space-y-6 uzbek-pattern">
-  <h1 className="cozy-title">Nima balo so'ramoqchisiz?</h1>
-      <div className="card space-y-4">
+    <div className="space-y-6 uzbek-pattern animate-fade-in-up">
+      <h1 className="cozy-title">Nima balo so'ramoqchisiz?</h1>
+      <div className="card space-y-4 hover-lift">
         <label className="block">
           <span className="cozy-subtitle">Sarlavha</span>
           <input

@@ -58,12 +58,12 @@ export default function QuestionDetailPage() {
     }
   }
 
-  if (loading) return <div className="card">Yuklanmoqda…</div>;
-  if (!q) return <div className="card">Savol topilmadi.</div>;
+  if (loading) return <div className="card animate-scale-in">Yuklanmoqda…</div>;
+  if (!q) return <div className="card animate-scale-in">Savol topilmadi.</div>;
 
   return (
-    <div className="space-y-5">
-      <div className="card">
+    <div className="space-y-5 animate-fade-in-up">
+      <div className="card hover-lift">
         <h1 className="text-2xl font-bold">{q.title}</h1>
         {q.body && <p className="mt-2 whitespace-pre-wrap">{q.body}</p>}
         <p className="text-xs text-gray-500 mt-3">So'ralgan vaqti: {new Date(q.created_at).toLocaleString()}</p>
@@ -71,10 +71,10 @@ export default function QuestionDetailPage() {
 
       <div className="space-y-3">
         <h2 className="text-lg font-semibold">Javoblar ({answers.length})</h2>
-        {answers.length === 0 && <div className="card">Hali javoblar yo'q.</div>}
+        {answers.length === 0 && <div className="card animate-scale-in">Hali javoblar yo'q.</div>}
         <ul className="space-y-3">
           {answers.map(a => (
-            <li key={a.id} className="card">
+            <li key={a.id} className="card hover-lift">
               <p className="whitespace-pre-wrap">{a.body}</p>
               <p className="text-xs text-gray-500 mt-2">
                 Javob berilgan vaqti: {new Date(a.created_at).toLocaleString()}
@@ -84,7 +84,7 @@ export default function QuestionDetailPage() {
         </ul>
       </div>
 
-      <div className="card space-y-2">
+      <div className="card space-y-2 hover-lift">
         <h3 className="font-medium">Bir balo deb qo'ying...</h3>
         {!user ? (
           <p className="text-sm text-gray-600">Javob yozish uchun tizimga kiring.</p>

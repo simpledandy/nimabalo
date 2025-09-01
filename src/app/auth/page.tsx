@@ -22,7 +22,7 @@ export default function AuthPage() {
 
   if (user) {
     return (
-      <div className="card">
+      <div className="card animate-scale-in hover-lift">
         <p className="mb-3">Siz tizimga kirdingiz.</p>
         <div className="flex gap-3">
           <Link href="/" className="btn-secondary">Bosh sahifa</Link>
@@ -33,7 +33,7 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="card">
+    <div className="card uzbek-pattern animate-fade-in-up hover-lift">
       <h1 className="text-xl font-semibold mb-3">Kirish / Ro'yxatdan o'tish</h1>
       <Auth
         supabaseClient={supabase}
@@ -77,7 +77,8 @@ export default function AuthPage() {
               email_input_label: "Email manzilingiz",
               email_input_placeholder: "Email kiriting",
               button_label: "Magic link yuborish",
-              loading_button_label: "Yuborilmoqda..."
+              loading_button_label: "Yuborilmoqda...",
+              link_text: "Magic link yuborish"
             },
             update_password: {
               password_label: "Yangi parol",

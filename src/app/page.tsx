@@ -3,7 +3,8 @@
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useSession } from "@/lib/useSession";
-import { useToast } from "@/components/ToastContext";
+import IndependenceCongrats from "@/components/IndependenceCongrats";
+import SurpriseCTA from "@/components/SurpriseCTA";
 
 type Question = {
   id: string;
@@ -15,8 +16,6 @@ type Question = {
 
 export default function Page() {
   const { user } = useSession();
-  const { addToast } = useToast();
-  const greeted = useRef(false);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [title, setTitle] = useState('');
@@ -36,13 +35,7 @@ export default function Page() {
       if (!error && data) setQuestions(data);
       setLoading(false);
     })();
-    // Independence Day toast (September 1)
-    const now = new Date();
-    if (now.getMonth() === 8 && now.getDate() === 1 && !greeted.current) {
-      addToast("O'zbekiston Mustaqillik kuni muborak! 🇺🇿", "success", 7000);
-      greeted.current = true;
-    }
-  }, [addToast]);
+  }, []);
 
   // Auto-focus ask input when ask form is shown
   useEffect(() => {
@@ -84,11 +77,12 @@ export default function Page() {
   }
 
   // Main prompt text
-  const mainPrompt = 'Xo‘sh, Nima baloni bilmoqchisiz?';
+  const mainPrompt = 'Xo‘sh, nima baloni bilmoqchisiz?';
 
   return (
     <div className="font-sans min-h-screen bg-gradient-to-b from-white to-sky-50">
       <div className="flex flex-row justify-center items-start min-h-screen pt-[72px]">
+        <IndependenceCongrats />
         {/* Main center column */}
         <div className="flex flex-col items-center justify-center flex-1 min-h-[80vh]">
           <h1 className="text-5xl md:text-6xl font-extrabold mb-10 text-center animate-fade-in" style={{color:'#0C4A6E', letterSpacing:'-0.01em'}}>{mainPrompt}</h1>
@@ -129,7 +123,7 @@ export default function Page() {
             </div>
           )}
         </div>
-        {/* Right sidebar: Latest questions */}
+        {/* Right sidebar: Latest questions / CTA */}
         <div className="hidden md:block fixed right-0 h-full w-80 px-4 pt-4 overflow-y-auto z-30 bg-white/95 shadow-2xl animate-fade-in-right">
           <div className="text-sm font-bold mb-4 pl-2" style={{color:'#1EB2A6'}}>So‘nggi savollar</div>
           <ul className="space-y-2">
@@ -146,4 +140,3 @@ export default function Page() {
     </div>
   );
 }
-

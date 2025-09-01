@@ -36,7 +36,7 @@ export default function ProfilePage() {
 
   if (!loading && !user) {
     return (
-      <div className="card">
+      <div className="card animate-scale-in hover-lift">
         <p className="mb-3"> Ko‘rish uchun tizimga kiring.</p>
         <Link href="/auth" className="btn">Kirish sahifasiga o‘tish</Link>
       </div>
@@ -44,9 +44,9 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 animate-fade-in-up">
       <h1 className="text-2xl font-bold">Shaxsiy Ko‘rinish</h1>
-      <div className="card space-y-3">
+      <div className="card space-y-3 hover-lift">
         <div className="grid gap-3">
           <div>
             <div className="text-sm text-gray-500">Email</div>

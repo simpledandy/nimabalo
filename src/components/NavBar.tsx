@@ -3,9 +3,13 @@
 import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 import { useSession } from '@/lib/useSession';
+import { usePathname } from 'next/navigation';
+import SurpriseCTA from './SurpriseCTA';
 
 export default function NavBar() {
   const { user } = useSession();
+  const pathname = usePathname();
+  const showSurprise = !user && pathname === '/';
 
   async function handleSignOut() {
     await supabase.auth.signOut();
@@ -19,14 +23,21 @@ export default function NavBar() {
         aria-label="Main navigation"
       >
         {/* Logo: far left, bigger, vertically centered */}
-        <div className="flex items-center h-full">
+        <div className="flex items-center h-full animate-fade-in">
           <Link href="/" className="icon-btn p-0 flex items-center" title="Nimabalo bosh sahifa" aria-label="Nimabalo Home">
             <img src="/logo.svg" alt="Nimabalo" className="h-12 w-auto sm:h-16" style={{display:'block', maxHeight:'64px'}} />
           </Link>
         </div>
+
+        {showSurprise && (
+          <div>
+            <SurpriseCTA />
+          </div>
+        )}
+          
         {/* Profile: far right, vertically centered (only if logged in) */}
         {user && (
-          <div className="flex items-center h-full gap-2">
+          <div className="flex items-center h-full gap-2 animate-fade-in-right">
             {/* Notification bell icon button */}
             <button
               className="icon-btn flex items-center relative"
@@ -41,7 +52,7 @@ export default function NavBar() {
               {/* Example: red dot for unread notifications */}
               {/* <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span> */}
             </button>
-            <Link href="/profile" className="icon-btn flex items-center" title="Nimabalo profil" aria-label="Profile">
+            <Link href="/profile" className="icon-btn flex items-center" title="Shaxsiy ko‘rinish" aria-label="Profile">
               <svg width="28" height="28" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4" fill="#0C4A6E"/><rect x="6" y="14" width="12" height="6" rx="3" fill="#0C4A6E"/></svg>
             </Link>
             <button
@@ -57,31 +68,6 @@ export default function NavBar() {
           </div>
         )}
       </nav>
-      <style jsx>{`
-        .icon-btn {
-          pointer-events: auto;
-          background: none;
-          border: none;
-          padding: 4px;
-          border-radius: 50%;
-          font-size: 1.7rem;
-          color: #0C4A6E;
-          transition: background 0.15s;
-        }
-        .icon-btn:focus {
-          outline: 2px solid #0C4A6E;
-          outline-offset: 2px;
-        }
-        .icon-btn:hover {
-          background: #e0e7ef;
-        }
-        @media (max-width: 640px) {
-          nav {
-            padding-left: 0.5rem;
-            padding-right: 0.5rem;
-          }
-        }
-      `}</style>
     </header>
   );
 }
