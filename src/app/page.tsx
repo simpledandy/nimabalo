@@ -76,7 +76,7 @@ export default function HomePage() {
   }
 
   // Main prompt text
-  const mainPrompt = 'Nima balo?';
+  const mainPrompt = 'Xo‘sh, Nima baloni bilmoqchisiz?';
 
   return (
     <div className="font-sans min-h-screen bg-gradient-to-b from-white to-sky-50">
@@ -99,11 +99,11 @@ export default function HomePage() {
               onKeyDown={e => { if (e.key === 'Enter') submit(); }}
             />
             <button
-              className="btn w-full text-2xl md:text-3xl py-4 font-bold bg-sky-500 hover:bg-sky-600 text-white rounded-xl transition-all duration-200 shadow-md text-center"
+              className="btn w-full text-center text-2xl md:text-3xl py-4 font-bold bg-sky-500 hover:bg-sky-600 text-white rounded-xl transition-all duration-200 shadow-md"
               onClick={submit}
               disabled={submitting || !title.trim()}
             >
-              {submitting ? 'Yuborilmoqda…' : 'So‘raymiz'}
+              {submitting ? 'Yuborilmoqda…' : 'Odamlardan so‘raymiz'}
             </button>
             {errorMsg && <div className="text-red-500 text-lg animate-shake">{errorMsg}</div>}
           </div>

@@ -4,15 +4,26 @@ import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { supabase } from '@/lib/supabaseClient';
 import { useSession } from '@/lib/useSession';
+import { useEffect, useRef } from 'react';
+import { useToast } from '@/components/ToastContext';
 import Link from 'next/link';
 
 export default function AuthPage() {
   const { user } = useSession();
+  const { addToast } = useToast();
+  const greeted = useRef(false);
+
+  useEffect(() => {
+    if (user && !greeted.current) {
+      addToast("Xush kelibsiz!", "success");
+      greeted.current = true;
+    }
+  }, [user, addToast]);
 
   if (user) {
     return (
       <div className="card">
-  <p className="mb-3">Siz tizimga kirdingiz.</p>
+        <p className="mb-3">Siz tizimga kirdingiz.</p>
         <div className="flex gap-3">
           <Link href="/" className="btn-secondary">Bosh sahifa</Link>
           <Link href="/ask" className="btn">Savol bering</Link>

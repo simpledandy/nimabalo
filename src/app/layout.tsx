@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import './globals.css';
 import NavBar from '@/components/NavBar';
+import ClientRoot from '@/components/ClientRoot';
 
 export const metadata: Metadata = {
   title: "Nimabalo",
@@ -52,8 +53,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="twitter:card" content="summary_large_image" />
       </head>
       <body>
-        <NavBar />
-        <main className="container py-6">{children}</main>
+        <ClientRoot>{children}</ClientRoot>
       </body>
     </html>
   );

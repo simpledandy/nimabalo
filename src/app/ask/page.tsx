@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useSession } from '@/lib/useSession';
 import { supabase } from '@/lib/supabaseClient';
 import { useState } from 'react';
+import { useToast } from '@/components/ToastContext';
 import Link from 'next/link';
 
 export default function AskPage() {
@@ -13,6 +14,7 @@ export default function AskPage() {
   const [body, setBody] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const { addToast } = useToast();
 
   if (!loading && !user) {
     return (
@@ -33,9 +35,11 @@ export default function AskPage() {
         body: body.trim() || null,
       });
       if (error) throw error;
+      addToast("Zo'r savol!", "success");
       router.push('/');
     } catch (e: any) {
       setErrorMsg(e.message ?? 'Nimadir xato ketdi');
+      addToast('Nimadir xato ketdi', 'error');
     } finally {
       setSubmitting(false);
     }
