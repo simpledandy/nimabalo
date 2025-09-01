@@ -128,6 +128,15 @@ body {
 .animate-bounce-slowest {
   animation: bounce 3s infinite;
 }
+.animate-wiggle {
+  animation: wiggle 0.5s ease-in-out;
+}
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+.animate-glow {
+  animation: glow 2s ease-in-out infinite alternate;
+}
 /* Hover lift utility */
 .hover-lift {
   transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
@@ -200,6 +209,21 @@ body {
     transform: translateY(0);
     animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
   }
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes glow {
+  from { box-shadow: 0 0 5px rgba(14, 165, 233, 0.5); }
+  to { box-shadow: 0 0 20px rgba(14, 165, 233, 0.8), 0 0 30px rgba(14, 165, 233, 0.6); }
 }
 
 /* Animated gradient border pan */
