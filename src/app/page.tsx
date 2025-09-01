@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useSession } from "@/lib/useSession";
+import { useToast } from "@/components/ToastContext";
 
 type Question = {
   id: string;
@@ -12,9 +13,10 @@ type Question = {
   user_id?: string;
 };
 
-
-export default function HomePage() {
+export default function Page() {
   const { user } = useSession();
+  const { addToast } = useToast();
+  const greeted = useRef(false);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [title, setTitle] = useState('');
@@ -34,7 +36,13 @@ export default function HomePage() {
       if (!error && data) setQuestions(data);
       setLoading(false);
     })();
-  }, []);
+    // Independence Day toast (September 1)
+    const now = new Date();
+    if (now.getMonth() === 8 && now.getDate() === 1 && !greeted.current) {
+      addToast("O'zbekiston Mustaqillik kuni muborak! 🇺🇿", "success", 7000);
+      greeted.current = true;
+    }
+  }, [addToast]);
 
   // Auto-focus ask input when ask form is shown
   useEffect(() => {
