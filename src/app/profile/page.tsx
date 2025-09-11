@@ -7,10 +7,9 @@ import { useBadges } from '@/lib/useBadges';
 import { BadgeList } from '@/components/BadgeDisplay';
 import Link from 'next/link';
 
-
 export default function ProfilePage() {
   const { user, loading } = useSession();
-  const { badges } = useBadges();
+  const { userPosition } = useBadges();
   const [profile, setProfile] = useState<any>(null);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
@@ -80,7 +79,7 @@ export default function ProfilePage() {
         </div>
         {/* Badges */}
         <div className="mt-4">
-          <BadgeList badges={badges} />
+          <BadgeList userPosition={userPosition} />
         </div>
       </div>
     </div>

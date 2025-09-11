@@ -33,17 +33,7 @@ export function useSession(): { user: User | null; session: Session | null; load
         return;
       }
 
-      // Award nth_user badge
-      const { error: badgeError } = await supabase
-        .from('badges')
-        .insert({
-          user_id: user.id,
-          badge_type: 'nth_user'
-        });
-
-      if (badgeError && badgeError.code !== '23505') { // Ignore duplicate key errors
-        console.error('Error awarding nth_user badge:', badgeError);
-      }
+      // Note: Badge awarding is now handled by useBadges hook
     } catch (error) {
       console.error('Error handling new user:', error);
     }

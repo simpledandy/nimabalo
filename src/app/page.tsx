@@ -23,7 +23,7 @@ type Question = {
 
 export default function HomePage() {
   const { user } = useSession();
-  const { newBadge, clearNewBadge } = useBadges();
+  const { newBadge, clearNewBadge, userPosition } = useBadges();
   const [title, setTitle] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -291,9 +291,9 @@ export default function HomePage() {
 
       {/* Badge Modal */}
       <BadgeModal
-        badgeType={newBadge!}
         isOpen={!!newBadge}
         onClose={clearNewBadge}
+        userPosition={userPosition}
       />
     </div>
   );

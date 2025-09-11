@@ -37,7 +37,7 @@ export default function QuestionDetailPage() {
   const params = useParams<{ id: string }>();
   const id = params?.id as string;
   const { user } = useSession();
-  const { newBadge, clearNewBadge } = useBadges();
+  const { newBadge, clearNewBadge, userPosition } = useBadges();
 
   const [q, setQ] = useState<Question | null>(null);
   const [answers, setAnswers] = useState<Answer[]>([]);
@@ -434,9 +434,9 @@ export default function QuestionDetailPage() {
 
       {/* Badge Modal */}
       <BadgeModal
-        badgeType={newBadge!}
         isOpen={!!newBadge}
         onClose={clearNewBadge}
+        userPosition={userPosition}
       />
     </div>
   );

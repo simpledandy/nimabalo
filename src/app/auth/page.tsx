@@ -12,7 +12,7 @@ import BadgeModal from '@/components/BadgeModal';
 
 export default function AuthPage() {
   const { user } = useSession();
-  const { newBadge, clearNewBadge } = useBadges();
+  const { newBadge, clearNewBadge, userPosition } = useBadges();
   const { addToast } = useToast();
   const greeted = useRef(false);
 
@@ -52,9 +52,9 @@ export default function AuthPage() {
 
       {/* Badge Modal */}
       <BadgeModal
-        badgeType={newBadge!}
         isOpen={!!newBadge}
         onClose={clearNewBadge}
+        userPosition={userPosition}
       />
     </div>
   );
@@ -170,9 +170,9 @@ export default function AuthPage() {
 
       {/* Badge Modal */}
       <BadgeModal
-        badgeType={newBadge!}
         isOpen={!!newBadge}
         onClose={clearNewBadge}
+        userPosition={userPosition}
       />
     </div>
   );

@@ -1,31 +1,25 @@
 "use client";
 
-import { BadgeType } from './BadgeModal';
-
 const BADGE_CONFIG = {
-  nth_user: {
-    title: "Siz nimabalo.uzda x-foydalanuvchi bo'ldingiz!",
-    emoji: "🤩",
-    color: "from-emerald-500 via-teal-500 to-cyan-500",
-    special: true
-  }
+  title: "Siz nimabalo.uzda x-foydalanuvchi bo'ldingiz!",
+  emoji: "🤩",
+  color: "from-emerald-500 via-teal-500 to-cyan-500",
+  special: true
 };
 
 interface BadgeDisplayProps {
-  badgeType: BadgeType;
   size?: 'small' | 'medium' | 'large';
   showTitle?: boolean;
   className?: string;
+  userPosition?: number | null;
 }
 
 export default function BadgeDisplay({ 
-  badgeType, 
   size = 'medium', 
   showTitle = false,
-  className = ""
+  className = "",
+  userPosition
 }: BadgeDisplayProps) {
-  const config = BADGE_CONFIG[badgeType];
-  
   const sizeClasses = {
     small: 'text-xs px-2 py-1',
     medium: 'text-sm px-3 py-2',
@@ -38,14 +32,18 @@ export default function BadgeDisplay({
     large: 'text-lg'
   };
 
+  const displayTitle = userPosition 
+    ? BADGE_CONFIG.title.replace('x', userPosition.toString())
+    : BADGE_CONFIG.title;
+
   return (
-    <div className={`inline-flex items-center gap-2 rounded-full font-semibold transition-all duration-300 hover:scale-105 ${sizeClasses[size]} bg-gradient-to-r ${config.color} text-white shadow-md ${className}`}>
+    <div className={`inline-flex items-center gap-2 rounded-full font-semibold transition-all duration-300 hover:scale-105 ${sizeClasses[size]} bg-gradient-to-r ${BADGE_CONFIG.color} text-white shadow-md ${className}`}>
       <span className={emojiSizes[size]}>
-        {config.emoji}
+        {BADGE_CONFIG.emoji}
       </span>
       {showTitle && (
         <span className="hidden sm:inline whitespace-nowrap">
-          {config.title.split('nimabalo.uz')[0].trim()}
+          {displayTitle.split('nimabalo.uz')[0].trim()}
         </span>
       )}
     </div>
@@ -53,16 +51,14 @@ export default function BadgeDisplay({
 }
 
 // Badge list component for profile page
-export function BadgeList({ badges }: { badges: Array<{ id: string; badge_type: BadgeType }> }) {
-  if (badges.length === 0) return null;
+export function BadgeList({ userPosition }: { userPosition?: number | null }) {
+  if (!userPosition) return null;
 
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-bold text-primary">Yorliqlaringiz</h2>
       <div className="flex flex-wrap gap-3">
-        {badges.map((badge) => (
-          <BadgeDisplay key={badge.id} badgeType={badge.badge_type} size="medium" />
-        ))}
+        <BadgeDisplay size="medium" userPosition={userPosition} />
       </div>
     </div>
   );
