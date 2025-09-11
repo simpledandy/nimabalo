@@ -132,7 +132,17 @@ export default function LatestQuestions({
             <Link href={`/q/${q.id}`} className="block">
               <h3 className="font-semibold mb-1 text-primary" style={{fontSize:'0.9em'}}>{q.title}</h3>
               <div className="flex items-center justify-between">
-                <span className="text-[10px] sm:text-[11px] text-neutral">Muallif: {q.user_id ? (authors[q.user_id] || '...') : 'Anon'}</span>
+                <span className="text-[10px] sm:text-[11px] text-neutral">
+                  Muallif: {q.user_id ? (
+                    <Link 
+                      href={`/profile/${q.user_id}`}
+                      className="text-accent hover:text-secondary transition-colors font-medium"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {authors[q.user_id] || '...'}
+                    </Link>
+                  ) : 'Anon'}
+                </span>
               </div>
             </Link>
             <div className="mt-2 flex items-center justify-between">

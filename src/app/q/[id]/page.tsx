@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 import { useSession } from '@/lib/useSession';
 import { useBadges } from '@/lib/useBadges';
@@ -41,6 +42,7 @@ export default function QuestionDetailPage() {
 
   const [q, setQ] = useState<Question | null>(null);
   const [answers, setAnswers] = useState<Answer[]>([]);
+  const [questionAuthor, setQuestionAuthor] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [answerText, setAnswerText] = useState('');
   const [posting, setPosting] = useState(false);
@@ -84,7 +86,18 @@ export default function QuestionDetailPage() {
         supabase.from('questions').select('*').eq('id', id).single(),
         supabase.from('answers').select('*').eq('question_id', id).order('created_at', { ascending: false }),
       ]);
-      if (qData) setQ(qData);
+      if (qData) {
+        setQ(qData);
+        // Fetch question author info
+        if (qData.user_id) {
+          const { data: authorData } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', qData.user_id)
+            .single();
+          setQuestionAuthor(authorData);
+        }
+      }
       if (aData) setAnswers(aData);
       setLoading(false);
     })();
@@ -192,6 +205,17 @@ export default function QuestionDetailPage() {
                   <span className="animate-pulse">📅</span>
                   <span>So'ralgan vaqti: {timeAgo(q.created_at)}</span>
                 </div>
+                {questionAuthor && (
+                  <div className="flex items-center gap-2">
+                    <span className="animate-pulse">👤</span>
+                    <Link 
+                      href={`/profile/${q.user_id}`}
+                      className="text-accent hover:text-secondary transition-colors font-medium"
+                    >
+                      {questionAuthor.full_name || questionAuthor.username || 'Foydalanuvchi'}
+                    </Link>
+                  </div>
+                )}
               </div>
               
               {/* Action Buttons */}

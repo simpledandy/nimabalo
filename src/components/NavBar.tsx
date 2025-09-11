@@ -6,6 +6,7 @@ import { useSession } from '@/lib/useSession';
 import { usePathname } from 'next/navigation';
 import SurpriseCTA from './SurpriseCTA';
 import ConfirmationModal from './ConfirmationModal';
+import ProfileIconButton from './ProfileIconButton';
 import { useConfirmation } from '@/lib/useConfirmation';
 
 export default function NavBar() {
@@ -66,9 +67,12 @@ export default function NavBar() {
               {/* Example: red dot for unread notifications */}
               {/* <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span> */}
             </button>
-            <Link href="/profile" className="icon-btn flex items-center" title="Shaxsiy ko‘rinish" aria-label="Profile">
-              <svg width="28" height="28" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4" fill="#0C4A6E"/><rect x="6" y="14" width="12" height="6" rx="3" fill="#0C4A6E"/></svg>
-            </Link>
+            <ProfileIconButton 
+              userId={user.id} 
+              size="medium" 
+              showTooltip={true}
+              className="hover:scale-110 transition-transform"
+            />
             <button
               onClick={handleLogoutClick}
               className="icon-btn flex items-center"
