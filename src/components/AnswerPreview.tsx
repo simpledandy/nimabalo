@@ -15,18 +15,18 @@ export default function AnswerPreview({ text, maxLength = 300 }: AnswerPreviewPr
   const hasMore = shouldTruncate && !isExpanded;
 
   if (!shouldTruncate) {
-    return <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{text}</p>;
+    return <p className="text-neutral leading-relaxed whitespace-pre-wrap">{text}</p>;
   }
 
   return (
     <div>
-      <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+      <p className="text-neutral leading-relaxed whitespace-pre-wrap">
         {displayText}
         {hasMore && '...'}
       </p>
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="mt-2 text-sky-600 hover:text-sky-700 font-medium text-sm flex items-center gap-1 transition-colors"
+        className="mt-2 text-accent hover:text-secondary font-medium text-sm flex items-center gap-1 transition-colors"
       >
         <span className="animate-bounce-slow">
           {isExpanded ? '🔽' : '🔼'}

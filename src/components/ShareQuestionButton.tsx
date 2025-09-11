@@ -49,8 +49,8 @@ export default function ShareQuestionButton({ questionTitle, questionUrl }: Shar
       disabled={isLoading}
       className={`flex items-center gap-2 px-4 py-2 rounded-full font-medium transition-all duration-300 hover:scale-105 active:scale-95 ${
         isCopied 
-          ? 'bg-green-500 text-white shadow-lg' 
-          : 'bg-purple-100 text-purple-600 hover:bg-purple-200'
+          ? 'bg-success text-white shadow-lg' 
+          : 'bg-warm/20 text-warm hover:bg-warm/30'
       } ${isLoading ? 'opacity-60 cursor-not-allowed' : ''}`}
     >
       <span className={`text-lg ${isCopied ? 'animate-bounce-slow' : ''}`}>

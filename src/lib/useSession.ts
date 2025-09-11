@@ -13,6 +13,42 @@ export function useSession(): { user: User | null; session: Session | null; load
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Function to create user profile and award nth_user badge
+  const handleNewUser = async (user: User) => {
+    try {
+      // Create profile if it doesn't exist
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .upsert({
+          id: user.id,
+          full_name: user.user_metadata?.full_name || user.user_metadata?.name || '',
+          username: user.user_metadata?.username || user.user_metadata?.preferred_username || null,
+          avatar_url: user.user_metadata?.avatar_url || null,
+        }, {
+          onConflict: 'id'
+        });
+
+      if (profileError) {
+        console.error('Error creating profile:', profileError);
+        return;
+      }
+
+      // Award nth_user badge
+      const { error: badgeError } = await supabase
+        .from('badges')
+        .insert({
+          user_id: user.id,
+          badge_type: 'nth_user'
+        });
+
+      if (badgeError && badgeError.code !== '23505') { // Ignore duplicate key errors
+        console.error('Error awarding nth_user badge:', badgeError);
+      }
+    } catch (error) {
+      console.error('Error handling new user:', error);
+    }
+  };
+
   useEffect(() => {
     let mounted = true;
 
@@ -25,9 +61,23 @@ export function useSession(): { user: User | null; session: Session | null; load
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
+      
+      // Handle new user signup
+      if (event === 'SIGNED_IN' && session?.user) {
+        // Check if this is a new user by checking if profile exists
+        const { data: existingProfile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', session.user.id)
+          .single();
+        
+        if (!existingProfile) {
+          await handleNewUser(session.user);
+        }
+      }
     });
 
     return () => {

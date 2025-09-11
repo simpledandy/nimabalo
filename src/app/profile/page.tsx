@@ -3,11 +3,14 @@
 import { useEffect, useState } from 'react';
 import { useSession } from '@/lib/useSession';
 import { supabase } from '@/lib/supabaseClient';
+import { useBadges } from '@/lib/useBadges';
+import { BadgeList } from '@/components/BadgeDisplay';
 import Link from 'next/link';
 
 
 export default function ProfilePage() {
   const { user, loading } = useSession();
+  const { badges } = useBadges();
   const [profile, setProfile] = useState<any>(null);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
@@ -37,23 +40,23 @@ export default function ProfilePage() {
   if (!loading && !user) {
     return (
       <div className="card animate-scale-in hover-lift">
-        <p className="mb-3"> Ko‘rish uchun tizimga kiring.</p>
-        <Link href="/auth" className="btn">Kirish sahifasiga o‘tish</Link>
+        <p className="mb-3"> Ko'rish uchun tizimga kiring.</p>
+        <Link href="/auth" className="btn">Kirish sahifasiga o'tish</Link>
       </div>
     );
   }
 
   return (
     <div className="space-y-4 animate-fade-in-up">
-      <h1 className="text-2xl font-bold">Shaxsiy Ko‘rinish</h1>
+      <h1 className="text-2xl font-bold text-primary">Shaxsiy Ko'rinish</h1>
       <div className="card space-y-3 hover-lift">
         <div className="grid gap-3">
           <div>
-            <div className="text-sm text-gray-500">Email</div>
-            <div>{user?.email}</div>
+            <div className="text-sm text-neutral">Email</div>
+            <div className="text-primary">{user?.email}</div>
           </div>
           <label className="block">
-            <span className="text-sm font-medium">Iznom</span>
+            <span className="text-sm font-medium text-primary">Iznom</span>
             <input
               className="input mt-1"
               value={profile?.username ?? ''}
@@ -62,7 +65,7 @@ export default function ProfilePage() {
             />
           </label>
           <label className="block">
-            <span className="text-sm font-medium">To‘liq ism</span>
+            <span className="text-sm font-medium text-primary">To'liq ism</span>
             <input
               className="input mt-1"
               value={profile?.full_name ?? ''}
@@ -73,17 +76,12 @@ export default function ProfilePage() {
           <button className="btn w-full text-center" onClick={save} disabled={saving}>
             Saqlash
           </button>
-          {msg && <div className="text-green-600 text-sm">{msg}</div>}
+          {msg && <div className="text-success text-sm">{msg}</div>}
         </div>
-        {/* BADGES (disabled for now) */}
-        {/* <div className="mt-4">
-          <h2 className="text-lg font-semibold mb-2">Yorliqlaringiz</h2>
-          <ul className="flex flex-wrap gap-2">
-            <li className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-semibold">Birinchi savol</li>
-            <li className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">Birinchi foydalanuvchi</li>
-            <li className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold">Referral yutug‘i</li>
-          </ul>
-        </div> */}
+        {/* Badges */}
+        <div className="mt-4">
+          <BadgeList badges={badges} />
+        </div>
       </div>
     </div>
   );

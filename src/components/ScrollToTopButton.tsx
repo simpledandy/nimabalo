@@ -30,7 +30,7 @@ export default function ScrollToTopButton() {
   return (
     <button
       onClick={scrollToTop}
-      className="fixed bottom-8 right-8 z-50 bg-sky-500 hover:bg-sky-600 text-white p-4 rounded-full shadow-lg transition-all duration-300 hover:scale-110 active:scale-95 animate-fade-in-up"
+      className="fixed bottom-8 right-8 z-50 bg-accent hover:bg-secondary text-white p-4 rounded-full shadow-lg transition-all duration-300 hover:scale-110 active:scale-95 animate-fade-in-up"
       style={{
         animationDelay: '0ms',
       }}

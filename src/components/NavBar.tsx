@@ -5,15 +5,29 @@ import { supabase } from '@/lib/supabaseClient';
 import { useSession } from '@/lib/useSession';
 import { usePathname } from 'next/navigation';
 import SurpriseCTA from './SurpriseCTA';
+import ConfirmationModal from './ConfirmationModal';
+import { useConfirmation } from '@/lib/useConfirmation';
 
 export default function NavBar() {
   const { user } = useSession();
   const pathname = usePathname();
   const showSurprise = !user && pathname === '/';
+  const { isOpen, config, confirm, close, handleConfirm } = useConfirmation();
 
   async function handleSignOut() {
     await supabase.auth.signOut();
   }
+
+  const handleLogoutClick = () => {
+    confirm(handleSignOut, {
+      title: "Nimabalo'dan chiqish",
+      message: "Haqiqatan ham tizimdan chiqmoqchimisiz? Sizning ma'lumotlaringiz saqlanadi.",
+      confirmText: "Ha, chiqish",
+      cancelText: "Bekor qilish",
+      confirmButtonStyle: "danger",
+      icon: "🚪"
+    });
+  };
 
   return (
     <header className="fixed top-0 left-0 w-full z-20 bg-transparent backdrop-blur" style={{height:'72px'}}>
@@ -56,18 +70,26 @@ export default function NavBar() {
               <svg width="28" height="28" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4" fill="#0C4A6E"/><rect x="6" y="14" width="12" height="6" rx="3" fill="#0C4A6E"/></svg>
             </Link>
             <button
-              onClick={handleSignOut}
+              onClick={handleLogoutClick}
               className="icon-btn flex items-center"
               title="Nimabalo'dan chiqish"
               aria-label="Sign out"
               tabIndex={0}
-              onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') handleSignOut(); }}
+              onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') handleLogoutClick(); }}
             >
               <svg width="28" height="28" fill="none" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="11" width="12" height="2" fill="#0C4A6E"/><polygon points="16,7 22,12 16,17" fill="#0C4A6E"/></svg>
             </button>
           </div>
         )}
       </nav>
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={isOpen}
+        onClose={close}
+        onConfirm={handleConfirm}
+        {...config}
+      />
     </header>
   );
 }

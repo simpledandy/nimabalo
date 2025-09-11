@@ -20,7 +20,19 @@ type Profile = {
   full_name: string | null;
 };
 
-export default function LatestQuestions({ questions, loading }: { questions: Question[]; loading: boolean }) {
+export default function LatestQuestions({ 
+  questions, 
+  loading, 
+  onQuestionsUpdate,
+  showAuthModal,
+  setShowAuthModal
+}: { 
+  questions: Question[]; 
+  loading: boolean; 
+  onQuestionsUpdate: (questions: Question[]) => void;
+  showAuthModal: boolean;
+  setShowAuthModal: (show: boolean) => void;
+}) {
   const { user } = useSession();
   const [authors, setAuthors] = useState<Record<string, string>>({});
   const [reactions, setReactions] = useState<Record<string, boolean>>({});
@@ -64,7 +76,11 @@ export default function LatestQuestions({ questions, loading }: { questions: Que
   }, [user, questions]);
 
   async function toggleSame(id: string) {
-    if (!user) return;
+    
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
     setLoadingReactions(prev => ({ ...prev, [id]: true }));
     try {
       const hasReacted = reactions[id];
@@ -78,6 +94,10 @@ export default function LatestQuestions({ questions, loading }: { questions: Que
           .eq('reaction_type', 'same_question');
         if (!error) {
           setReactions(prev => ({ ...prev, [id]: false }));
+          // Update the same_count in the questions array
+          onQuestionsUpdate(questions.map(q => 
+            q.id === id ? { ...q, same_count: Math.max(0, (q.same_count || 0) - 1) } : q
+          ));
         }
       } else {
         // Add reaction
@@ -90,6 +110,10 @@ export default function LatestQuestions({ questions, loading }: { questions: Que
           });
         if (!error) {
           setReactions(prev => ({ ...prev, [id]: true }));
+          // Update the same_count in the questions array
+          onQuestionsUpdate(questions.map(q => 
+            q.id === id ? { ...q, same_count: (q.same_count || 0) + 1 } : q
+          ));
         }
       }
     } finally {
@@ -99,34 +123,57 @@ export default function LatestQuestions({ questions, loading }: { questions: Que
 
   return (
     <>
-      <div className="text-sm font-bold mb-4 pl-2" style={{color:'#1EB2A6'}}>So‘nggi savollar</div>
+      <div className="text-sm sm:text-base font-bold mb-4 pl-2 text-accent">So'nggi savollar</div>
       <ul className="space-y-2">
-        {loading && <li className="card text-xs">Yuklanmoqda…</li>}
-        {!loading && questions.length === 0 && <li className="card text-xs">Hali savollar yo‘q.</li>}
+        {loading && <li className="card text-xs sm:text-sm">Yuklanmoqda…</li>}
+        {!loading && questions.length === 0 && <li className="card text-xs sm:text-sm">Hali savollar yo'q.</li>}
         {!loading && questions.map((q) => (
-          <li key={q.id} className="card hover-lift transition-shadow cursor-pointer text-xs px-3 py-3" style={{background:'#f8fafc'}}>
+          <li key={q.id} className="card hover-lift transition-shadow cursor-pointer text-xs sm:text-sm px-3 py-3 bg-light">
             <Link href={`/q/${q.id}`} className="block">
-              <h3 className="font-semibold mb-1" style={{color:'#0C4A6E', fontSize:'1em'}}>{q.title}</h3>
+              <h3 className="font-semibold mb-1 text-primary" style={{fontSize:'0.9em'}}>{q.title}</h3>
               <div className="flex items-center justify-between">
-                <span className="text-[11px] text-gray-500">Muallif: {q.user_id ? (authors[q.user_id] || '...') : 'Anon'}</span>
+                <span className="text-[10px] sm:text-[11px] text-neutral">Muallif: {q.user_id ? (authors[q.user_id] || '...') : 'Anon'}</span>
               </div>
             </Link>
             <div className="mt-2 flex items-center justify-between">
-              <span className="text-[10px] text-gray-400">
-                {q.same_count ? `${q.same_count} kishida ham shunday savol bor` : ''}
+              <span className="text-[9px] sm:text-[10px] text-neutral opacity-60">
+                {q.same_count ? `${q.same_count} kishida ham qiziq` : ''}
               </span>
-              <button
-                className={`btn-secondary px-3 py-1 text-[11px] ${reactions[q.id] ? 'opacity-100' : 'opacity-90'} ${loadingReactions[q.id] ? 'opacity-50' : ''}`}
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleSame(q.id); }}
-                disabled={!user || loadingReactions[q.id]}
-                title={!user ? "Reaksiya berish uchun kirish kerak" : "Xuddi shu savol menda ham bor"}
-              >
-                {loadingReactions[q.id] ? '...' : (reactions[q.id] ? 'Menda ham shu savol ✓' : 'Menda ham shu savol')}
-              </button>
+              <div className="flex gap-1 sm:gap-2">
+                {/* Answer Button - Primary action */}
+                <Link 
+                  href={`/q/${q.id}`}
+                  className="btn px-2 sm:px-3 py-1 text-[10px] sm:text-[11px] min-w-0"
+                  title="Bu savolga javob bering"
+                >
+                  <span className="mr-1">💬</span>
+                  <span className="hidden sm:inline">Javob</span>
+                </Link>
+                {/* Same Question Button - Secondary action */}
+                <button
+                  className={`btn-secondary px-2 sm:px-3 py-1 text-[10px] sm:text-[11px] min-w-0 ${reactions[q.id] ? 'opacity-100' : 'opacity-90'} ${loadingReactions[q.id] ? 'opacity-50' : ''}`}
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleSame(q.id); }}
+                  disabled={!user || loadingReactions[q.id]}
+                  title={!user ? "Qiziqish bildirish uchun kirish kerak" : "Bu savol menga ham qiziq"}
+                  aria-label={!user ? "Qiziqish bildirish uchun kirish kerak" : reactions[q.id] ? "Bu savol menga ham qiziq" : "Bu savol menga ham qiziq"}
+                  aria-pressed={reactions[q.id]}
+                  aria-busy={loadingReactions[q.id]}
+                >
+                  {loadingReactions[q.id] ? '...' : (
+                    <>
+                      <span className="mr-1">🤝</span>
+                      <span className="hidden sm:inline">
+                        {reactions[q.id] ? 'Menga ham qiziq ✓' : 'Menga ham qiziq'}
+                      </span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </li>
         ))}
       </ul>
+      
     </>
   );
 }

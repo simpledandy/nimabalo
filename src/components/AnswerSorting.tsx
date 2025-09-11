@@ -23,7 +23,7 @@ export default function AnswerSorting({ onSortChange, currentSort }: AnswerSorti
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-2 bg-sky-100 text-sky-600 rounded-lg font-medium hover:bg-sky-200 transition-all duration-300 hover:scale-105"
+        className="flex items-center gap-2 px-3 py-2 bg-light text-primary rounded-lg font-medium hover:bg-accent hover:text-white transition-all duration-300 hover:scale-105"
       >
         <span className="animate-bounce-slow">🔀</span>
         <span>Saralash</span>
@@ -39,14 +39,14 @@ export default function AnswerSorting({ onSortChange, currentSort }: AnswerSorti
                 onSortChange(option.value);
                 setIsOpen(false);
               }}
-              className={`w-full text-left px-4 py-3 hover:bg-sky-50 transition-colors flex items-center gap-2 ${
-                currentSort === option.value ? 'bg-sky-100 text-sky-600 font-medium' : 'text-gray-700'
+              className={`w-full text-left px-4 py-3 hover:bg-light transition-colors flex items-center gap-2 ${
+                currentSort === option.value ? 'bg-accent text-white font-medium' : 'text-primary'
               }`}
             >
               <span className="text-lg">{option.icon}</span>
               <span>{option.label}</span>
               {currentSort === option.value && (
-                <span className="ml-auto text-sky-500">✓</span>
+                <span className="ml-auto text-white">✓</span>
               )}
             </button>
           ))}

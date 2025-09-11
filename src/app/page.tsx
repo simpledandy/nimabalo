@@ -1,13 +1,16 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useSession } from "@/lib/useSession";
+import { useBadges } from "@/lib/useBadges";
 import IndependenceCongrats from "@/components/IndependenceCongrats";
 import SurpriseCTA from "@/components/SurpriseCTA";
 import LatestQuestions from "@/components/LatestQuestions";
 import SparkleEffect from "@/components/SparkleEffect";
 import ConfettiEffect from "@/components/ConfettiEffect";
+import AuthModal from "@/components/AuthModal";
+import BadgeModal from "@/components/BadgeModal";
 
 type Question = {
   id: string;
@@ -18,19 +21,24 @@ type Question = {
   same_count?: number;
 };
 
-export default function Page() {
+export default function HomePage() {
   const { user } = useSession();
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { newBadge, clearNewBadge } = useBadges();
   const [title, setTitle] = useState('');
-  const [body, setBody] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-  const [showSignupPrompt, setShowSignupPrompt] = useState(false);
-  const [hoveredWord, setHoveredWord] = useState<number | null>(null);
-  const [showConfetti, setShowConfetti] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showSignupPrompt, setShowSignupPrompt] = useState(false);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
+
+  // Create a proper callback function for the modal
+  const handleShowAuthModal = useCallback((show: boolean) => {
+    setShowAuthModal(show);
+  }, []);
 
   // Fetch questions
   useEffect(() => {
@@ -62,19 +70,39 @@ export default function Page() {
       setErrorMsg('Savol sarlavhasi bo\'lishi mumkin emas.');
       return;
     }
+    
+    // Check if question already exists
+    const { data: existingQuestion } = await supabase
+      .from('questions')
+      .select('id')
+      .eq('title', title.trim())
+      .single();
+    
+    if (existingQuestion) {
+      setErrorMsg('Bu savol allaqachon so\'ralgan. Iltimos, boshqa savol so\'rang yoki mavjud savolni toping.');
+      return;
+    }
+    
     setSubmitting(true);
     const { error } = await supabase.from('questions').insert({
       title: title.trim(),
-      body: body.trim(),
       user_id: user.id,
     });
     setSubmitting(false);
     if (error) {
-      setErrorMsg('Xatolik yuz berdi. Iltimos, qayta urinib ko\'ring.');
+      console.error('Question submission error:', error);
+      if (error.code === '23505') {
+        setErrorMsg('Bu savol allaqachon so\'ralgan. Iltimos, boshqa savol so\'rang yoki mavjud savolni toping.');
+      } else if (error.code === '23503') {
+        setErrorMsg('Foydalanuvchi ma\'lumotlari topilmadi. Iltimos, qayta tizimga kiring.');
+      } else if (error.message) {
+        setErrorMsg(`Xatolik: ${error.message}`);
+      } else {
+        setErrorMsg('Xatolik yuz berdi. Iltimos, qayta urinib ko\'ring.');
+      }
       return;
     }
     setTitle('');
-    setBody('');
     // Show confetti celebration!
     setShowConfetti(true);
     setShowSuccess(true);
@@ -111,25 +139,19 @@ export default function Page() {
         <div className="absolute bottom-20 right-10 text-3xl opacity-10 animate-bounce-slow">😊</div>
       </div>
 
-      <div className="flex flex-row justify-center items-start min-h-screen pt-[72px]">
+      <div className="flex flex-col lg:flex-row justify-center items-start min-h-screen pt-[72px]">
         <IndependenceCongrats />
         {/* Main center column */}
-        <div className="flex flex-col items-center justify-center flex-1 min-h-[80vh]">
+        <div className="flex flex-col items-center justify-center flex-1 min-h-[80vh] px-4 lg:px-10">
           {/* Playful main heading with word-by-word animation */}
           <div className="text-center mb-10">
-            <h1 className="text-5xl md:text-6xl font-extrabold mb-4 animate-fade-in" style={{color:'#0C4A6E', letterSpacing:'-0.01em'}}>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 animate-fade-in text-primary" style={{letterSpacing:'-0.01em'}}>
               {promptWords.map((word, index) => (
                 <span
                   key={index}
-                  className={`inline-block mx-1 transition-all duration-300 hover:scale-110 hover:rotate-2 cursor-default ${
-                    hoveredWord === index ? 'animate-pulse' : ''
-                  }`}
-                  onMouseEnter={() => setHoveredWord(index)}
-                  onMouseLeave={() => setHoveredWord(null)}
+                  className="inline-block mx-1 transition-all duration-300 hover:scale-110 hover:rotate-2 cursor-default"
                   style={{
-                    animationDelay: `${index * 200}ms`,
-                    transform: hoveredWord === index ? 'scale(1.1) rotate(2deg)' : 'scale(1) rotate(0deg)',
-                    textShadow: hoveredWord === index ? '0 4px 12px rgba(14, 165, 233, 0.4)' : 'none'
+                    animationDelay: `${index * 200}ms`
                   }}
                 >
                   {word}
@@ -141,18 +163,18 @@ export default function Page() {
             </h1>
             
             {/* Playful subtitle */}
-            <p className="text-xl md:text-2xl text-sky-600 font-medium animate-fade-in-up opacity-80" style={{animationDelay: '800ms'}}>
-              Savollaringizni so'rang, biz sizga yordam beramiz! 🌟
+            <p className="text-lg md:text-xl lg:text-2xl text-secondary font-medium animate-fade-in-up opacity-80" style={{animationDelay: '800ms'}}>
+              Savollaringizni so'rang, insonlardan javob oling! 🌟
             </p>
           </div>
 
-          <div className="p-10 flex flex-col gap-8 w-full max-w-xl animate-fade-in-up" style={{background: 'transparent', boxShadow: 'none', animationDelay: '400ms'}}>
+          <div className="w-full max-w-xl animate-fade-in-up" style={{background: 'transparent', boxShadow: 'none', animationDelay: '400ms'}}>
             {/* Enhanced input with playful placeholder */}
-            <div className="relative group">
+            <div className="relative group mb-8">
               <input
-                className="input text-2xl md:text-3xl py-6 px-4 font-bold border-2 border-sky-200 focus:border-sky-500 transition-all duration-300 outline-none rounded-xl shadow-sm focus:shadow-lg bg-transparent group-hover:shadow-md"
+                className="input text-xl md:text-2xl lg:text-3xl py-4 md:py-6 px-4 font-bold transition-all duration-300 outline-none rounded-xl"
                 type="text"
-                placeholder="Savolingizni yozing... 🤔"
+                placeholder="Savolingizni yozing..."
                 value={title}
                 onChange={e => setTitle(e.target.value)}
                 autoFocus
@@ -168,20 +190,20 @@ export default function Page() {
                 onKeyDown={e => { if (e.key === 'Enter') submit(); }}
               />
               {/* Character counter with emoji */}
-              <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-sm text-sky-400 font-medium">
+              <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-sm text-accent font-medium">
                 {title.length}/100 {title.length > 80 ? '🚨' : title.length > 50 ? '📝' : '✍️'}
               </div>
             </div>
 
             {/* Enhanced button with playful text */}
             <button
-              className="btn w-full text-center text-2xl md:text-3xl py-4 font-bold bg-sky-500 hover:bg-sky-600 text-white rounded-xl transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 active:scale-95"
+              className="btn w-full text-center text-xl md:text-2xl lg:text-3xl py-3 md:py-4 font-bold rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 mb-8"
               onClick={submit}
               disabled={submitting || !title.trim()}
               style={{
                 background: submitting || !title.trim() 
-                  ? 'linear-gradient(90deg, #94a3b8 0%, #64748b 100%)' 
-                  : 'linear-gradient(90deg, #0ea5e9 0%, #0284c7 100%)',
+                  ? 'linear-gradient(135deg, #94a3b8 0%, #64748b 100%)' 
+                  : 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%)',
                 transform: submitting || !title.trim() ? 'scale(1)' : 'scale(1)',
                 transition: 'all 0.3s ease'
               }}
@@ -201,7 +223,7 @@ export default function Page() {
 
             {/* Enhanced error message */}
             {errorMsg && (
-              <div className="text-red-500 text-lg animate-shake bg-red-50 p-4 rounded-lg border border-red-200 flex items-center gap-2">
+              <div className="text-error text-lg animate-shake bg-red-50 p-4 rounded-lg border border-red-200 flex items-center gap-2 mb-8">
                 <span>⚠️</span>
                 {errorMsg}
               </div>
@@ -209,40 +231,70 @@ export default function Page() {
 
             {/* Fun tip */}
             {!title && !submitting && (
-              <div className="text-center text-sky-600 text-sm opacity-70 animate-pulse">
+              <div className="text-center text-accent text-sm opacity-70 animate-pulse mb-8">
                 💡 Maslahat: Savolingizni aniq va tushunarli yozing!
               </div>
             )}
 
+
+
             {/* Success message */}
             {showSuccess && (
-              <div className="text-center text-green-600 text-lg font-medium animate-fade-in-up bg-green-50 p-4 rounded-lg border border-green-200 flex items-center justify-center gap-2">
+              <div className="text-center text-success text-lg font-medium animate-fade-in-up bg-green-50 p-4 rounded-lg border border-green-200 flex items-center justify-center gap-2 mb-8">
                 <span className="animate-bounce-slow">🎉</span>
                 Savolingiz muvaffaqiyatli yuborildi! Javobni kutib turing! 🚀
               </div>
             )}
           </div>
 
-          {/* Show sign in/up prompt if user tries to submit while not logged in */}
-          {showSignupPrompt && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-              <div className="bg-white rounded-xl shadow-2xl p-8 flex flex-col items-center gap-4 max-w-xs w-full animate-scale-in">
-                <div className="text-2xl mb-2">🔐</div>
-                <div className="text-xl font-bold text-sky-700 mb-2 text-center">Savol yuborish uchun kirish yoki ro'yxatdan o'tish kerak</div>
-                <div className="flex gap-4 w-full">
-                  <a href="/auth" className="flex-1 py-2 px-4 rounded-lg bg-sky-500 hover:bg-sky-600 text-white font-bold text-center transition-all hover:scale-105">Kirish</a>
-                  <a href="/auth?signup=1" className="flex-1 py-2 px-4 rounded-lg bg-sky-100 hover:bg-sky-200 text-sky-700 font-bold text-center transition-all hover:scale-105">Ro'yxatdan o'tish</a>
-                </div>
-                <button className="mt-2 text-xs text-gray-400 hover:text-gray-600 transition-colors" onClick={() => setShowSignupPrompt(false)}>Bekor qilish</button>
-              </div>
-            </div>
-          )}
+                    {/* Show sign in/up prompt if user tries to submit while not logged in */}
+          <AuthModal
+            isOpen={showSignupPrompt}
+            onClose={() => setShowSignupPrompt(false)}
+            title="Savol yuborish uchun tizimga kiring"
+            message="Savolingizni yuborish va javoblarni olish uchun tizimga kiring yoki ro'yxatdan o'ting"
+          />
         </div>
-        {/* Right sidebar */}
-        <div className="hidden md:block fixed right-0 h-full w-80 px-4 pt-4 overflow-y-auto z-30 bg-white/95 shadow-2xl animate-fade-in-right">
-          <LatestQuestions questions={questions} loading={loading} />
+        
+        {/* Right sidebar - hidden on mobile, visible on desktop */}
+        <div className="hidden lg:block fixed right-0 h-full w-80 px-4 pt-4 overflow-y-auto z-30 bg-white/95 shadow-2xl animate-fade-in-right">
+          <LatestQuestions 
+            questions={questions} 
+            loading={loading} 
+            onQuestionsUpdate={setQuestions}
+            showAuthModal={showAuthModal}
+            setShowAuthModal={handleShowAuthModal}
+          />
         </div>
       </div>
+
+      {/* Mobile Latest Questions Section - shown below main content on mobile */}
+      <div className="lg:hidden px-4 pb-8">
+        <div className="max-w-xl mx-auto">
+          <LatestQuestions 
+            questions={questions} 
+            loading={loading} 
+            onQuestionsUpdate={setQuestions}
+            showAuthModal={showAuthModal}
+            setShowAuthModal={handleShowAuthModal}
+          />
+        </div>
+      </div>
+
+      {/* Auth Modal for "Menga ham qiziq" button */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        title="Qiziqish bildirish uchun tizimga kiring"
+        message="Bu savolga qiziqish bildirish uchun tizimga kiring yoki ro'yxatdan o'ting"
+      />
+
+      {/* Badge Modal */}
+      <BadgeModal
+        badgeType={newBadge!}
+        isOpen={!!newBadge}
+        onClose={clearNewBadge}
+      />
     </div>
   );
 }
