@@ -3,14 +3,14 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useSession } from "@/lib/useSession";
-import { useBadges } from "@/lib/useBadges";
+import { strings, formatString } from "@/lib/strings";
+import { queryWithTimeout, handleSupabaseError } from "@/lib/supabaseUtils";
 import IndependenceCongrats from "@/components/IndependenceCongrats";
 import SurpriseCTA from "@/components/SurpriseCTA";
 import LatestQuestions from "@/components/LatestQuestions";
 import SparkleEffect from "@/components/SparkleEffect";
 import ConfettiEffect from "@/components/ConfettiEffect";
 import AuthModal from "@/components/AuthModal";
-import BadgeModal from "@/components/BadgeModal";
 
 type Question = {
   id: string;
@@ -23,7 +23,6 @@ type Question = {
 
 export default function HomePage() {
   const { user } = useSession();
-  const { newBadge, clearNewBadge, userPosition } = useBadges();
   const [title, setTitle] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -42,14 +41,37 @@ export default function HomePage() {
 
   // Fetch questions
   useEffect(() => {
+    let isMounted = true;
+    
     (async () => {
-      const { data, error } = await supabase
-        .from('questions')
-        .select('id,title,body,created_at,user_id,same_count')
-        .order('created_at', { ascending: false });
-      if (!error && data) setQuestions(data);
-      setLoading(false);
+      try {
+        const query = supabase
+          .from('questions')
+          .select('id,title,body,created_at,user_id,same_count')
+          .order('created_at', { ascending: false });
+        
+        const { data, error } = await queryWithTimeout(query, 8000) as { data: any; error: any };
+        
+        if (isMounted) {
+          if (error) {
+            console.error('Error fetching questions:', handleSupabaseError(error, 'Fetch questions'));
+            // Still set loading to false even on error
+          } else if (data) {
+            setQuestions(data);
+          }
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error('Error fetching questions:', handleSupabaseError(err, 'Fetch questions'));
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
     })();
+    
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // Auto-focus ask input when ask form is shown
@@ -67,7 +89,7 @@ export default function HomePage() {
       return;
     }
     if (!title.trim()) {
-      setErrorMsg('Savol sarlavhasi bo\'lishi mumkin emas.');
+      setErrorMsg(strings.home.errorMessages.emptyTitle);
       return;
     }
     
@@ -79,7 +101,7 @@ export default function HomePage() {
       .single();
     
     if (existingQuestion) {
-      setErrorMsg('Bu savol allaqachon so\'ralgan. Iltimos, boshqa savol so\'rang yoki mavjud savolni toping.');
+      setErrorMsg(strings.home.errorMessages.duplicateQuestion);
       return;
     }
     
@@ -92,13 +114,13 @@ export default function HomePage() {
     if (error) {
       console.error('Question submission error:', error);
       if (error.code === '23505') {
-        setErrorMsg('Bu savol allaqachon so\'ralgan. Iltimos, boshqa savol so\'rang yoki mavjud savolni toping.');
+        setErrorMsg(strings.home.errorMessages.duplicateQuestion);
       } else if (error.code === '23503') {
-        setErrorMsg('Foydalanuvchi ma\'lumotlari topilmadi. Iltimos, qayta tizimga kiring.');
+        setErrorMsg(strings.home.errorMessages.userNotFound);
       } else if (error.message) {
-        setErrorMsg(`Xatolik: ${error.message}`);
+        setErrorMsg(`${strings.auth.errorPrefix} ${error.message}`);
       } else {
-        setErrorMsg('Xatolik yuz berdi. Iltimos, qayta urinib ko\'ring.');
+        setErrorMsg(strings.home.errorMessages.genericError);
       }
       return;
     }
@@ -108,16 +130,22 @@ export default function HomePage() {
     setShowSuccess(true);
     // Hide success message after 3 seconds
     setTimeout(() => setShowSuccess(false), 3000);
-    // Optionally, refresh questions
-    const { data, error: fetchError } = await supabase
-      .from('questions')
-      .select('id,title,body,created_at,user_id,same_count')
-      .order('created_at', { ascending: false });
-    if (!fetchError && data) setQuestions(data);
+    // Refresh questions
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('questions')
+        .select('id,title,body,created_at,user_id,same_count')
+        .order('created_at', { ascending: false });
+      if (!fetchError && data) {
+        setQuestions(data);
+      }
+    } catch (err) {
+      console.error('Error refreshing questions:', err);
+    }
   }
 
   // Split the main prompt into words for individual animation
-  const promptWords = ['Xo\'sh,', 'nima', 'baloni', 'bilmoqchisiz?'];
+  const promptWords = strings.home.title.split(' ');
   const emojis = ['🤔', '💭', '✨', '😊'];
 
   return (
@@ -139,7 +167,7 @@ export default function HomePage() {
         <div className="absolute bottom-20 right-10 text-3xl opacity-10 animate-bounce-slow">😊</div>
       </div>
 
-      <div className="flex flex-col lg:flex-row justify-center items-start min-h-screen pt-[72px]">
+      <div className="flex flex-col lg:flex-row justify-center items-start min-h-screen pt-[104px]">
         <IndependenceCongrats />
         {/* Main center column */}
         <div className="flex flex-col items-center justify-center flex-1 min-h-[80vh] px-4 lg:px-10">
@@ -164,7 +192,7 @@ export default function HomePage() {
             
             {/* Playful subtitle */}
             <p className="text-lg md:text-xl lg:text-2xl text-secondary font-medium animate-fade-in-up opacity-80" style={{animationDelay: '800ms'}}>
-              Savollaringizni so'rang, insonlardan javob oling! 🌟
+              {strings.home.subtitle}
             </p>
           </div>
 
@@ -174,7 +202,7 @@ export default function HomePage() {
               <input
                 className="input text-xl md:text-2xl lg:text-3xl py-4 md:py-6 px-4 font-bold transition-all duration-300 outline-none rounded-xl"
                 type="text"
-                placeholder="Savolingizni yozing..."
+                placeholder={strings.home.inputPlaceholder}
                 value={title}
                 onChange={e => setTitle(e.target.value)}
                 autoFocus
@@ -191,7 +219,7 @@ export default function HomePage() {
               />
               {/* Character counter with emoji */}
               <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-sm text-accent font-medium">
-                {title.length}/100 {title.length > 80 ? '🚨' : title.length > 50 ? '📝' : '✍️'}
+                {title.length}/100 {title.length > 80 ? strings.home.characterCounter.warning : title.length > 50 ? strings.home.characterCounter.typing : strings.home.characterCounter.writing}
               </div>
             </div>
 
@@ -211,12 +239,12 @@ export default function HomePage() {
               {submitting ? (
                 <span className="flex items-center justify-center gap-2">
                   <span className="animate-spin">⏳</span>
-                  Yuborilmoqda…
+                  {strings.home.submittingButton}
                 </span>
               ) : (
                 <span className="flex items-center justify-center gap-2">
                   <span className="animate-bounce-slow">🚀</span>
-                  Odamlardan so'raymiz!
+                  {strings.home.submitButton}
                 </span>
               )}
             </button>
@@ -232,7 +260,7 @@ export default function HomePage() {
             {/* Fun tip */}
             {!title && !submitting && (
               <div className="text-center text-accent text-sm opacity-70 animate-pulse mb-8">
-                💡 Maslahat: Savolingizni aniq va tushunarli yozing!
+                {strings.home.tip}
               </div>
             )}
 
@@ -242,7 +270,7 @@ export default function HomePage() {
             {showSuccess && (
               <div className="text-center text-success text-lg font-medium animate-fade-in-up bg-green-50 p-4 rounded-lg border border-green-200 flex items-center justify-center gap-2 mb-8">
                 <span className="animate-bounce-slow">🎉</span>
-                Savolingiz muvaffaqiyatli yuborildi! Javobni kutib turing! 🚀
+                {strings.home.successMessage}
               </div>
             )}
           </div>
@@ -251,20 +279,22 @@ export default function HomePage() {
           <AuthModal
             isOpen={showSignupPrompt}
             onClose={() => setShowSignupPrompt(false)}
-            title="Savol yuborish uchun tizimga kiring"
-            message="Savolingizni yuborish va javoblarni olish uchun tizimga kiring yoki ro'yxatdan o'ting"
+            title={strings.authModal.titles.askQuestion}
+            message={strings.authModal.messages.askQuestion}
           />
         </div>
         
         {/* Right sidebar - hidden on mobile, visible on desktop */}
-        <div className="hidden lg:block fixed right-0 h-full w-80 px-4 pt-4 overflow-y-auto z-30 bg-white/95 shadow-2xl animate-fade-in-right">
-          <LatestQuestions 
-            questions={questions} 
-            loading={loading} 
-            onQuestionsUpdate={setQuestions}
-            showAuthModal={showAuthModal}
-            setShowAuthModal={handleShowAuthModal}
-          />
+        <div className="hidden lg:block fixed right-0 h-full w-80 px-4 pt-4 z-30 bg-white/95 shadow-2xl animate-fade-in-right">
+          <div className="h-full overflow-y-auto">
+            <LatestQuestions 
+              questions={questions} 
+              loading={loading} 
+              onQuestionsUpdate={setQuestions}
+              showAuthModal={showAuthModal}
+              setShowAuthModal={handleShowAuthModal}
+            />
+          </div>
         </div>
       </div>
 
@@ -285,16 +315,10 @@ export default function HomePage() {
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
-        title="Qiziqish bildirish uchun tizimga kiring"
-        message="Bu savolga qiziqish bildirish uchun tizimga kiring yoki ro'yxatdan o'ting"
+        title={strings.authModal.titles.showInterest}
+        message={strings.authModal.messages.showInterest}
       />
 
-      {/* Badge Modal */}
-      <BadgeModal
-        isOpen={!!newBadge}
-        onClose={clearNewBadge}
-        userPosition={userPosition}
-      />
     </div>
   );
 }

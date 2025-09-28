@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useSession } from '@/lib/useSession';
 import AuthModal from './AuthModal';
+import { strings } from '@/lib/strings';
 
 interface SameQuestionButtonProps {
   questionId: string;
@@ -89,19 +90,19 @@ export default function SameQuestionButton({
         onClick={handleSameQuestion}
         disabled={isLoading}
         className={`btn-secondary px-3 py-1 text-[11px] ${hasReacted ? 'opacity-100' : 'opacity-90'} ${isLoading ? 'opacity-50' : ''}`}
-        title={"Xuddi shu savol menda ham bor"}
-        aria-label={hasReacted ? "Sizda ham xuddi shu savol bor" : "Menda ham xuddi shu savol bor"}
+        title={strings.latestQuestions.tooltips.sameQuestion}
+        aria-label={hasReacted ? strings.latestQuestions.tooltips.sameQuestion : strings.latestQuestions.tooltips.sameQuestion}
         aria-pressed={hasReacted}
         aria-busy={isLoading}
       >
-        {isLoading ? '...' : (hasReacted ? 'Menda ham shu savol ✓' : 'Menda ham shu savol')}
+        {isLoading ? strings.latestQuestions.buttons.sameQuestionLoading : (hasReacted ? strings.latestQuestions.buttons.sameQuestionActive : strings.latestQuestions.buttons.sameQuestion)}
       </button>
       
       {/* Auth Modal */}
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
-        title="Savolga munosabat bildirish uchun tizimga kiring"
+        title={strings.latestQuestions.tooltips.sameQuestionRequiresAuth}
       />
     </>
   );

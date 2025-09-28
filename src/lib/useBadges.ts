@@ -17,6 +17,7 @@ export function useBadges() {
   const [loading, setLoading] = useState(false);
   const [newBadge, setNewBadge] = useState<boolean>(false);
   const [userPosition, setUserPosition] = useState<number | null>(null);
+  const [hasSeenBadge, setHasSeenBadge] = useState<boolean>(false);
 
   // Fetch user badges and position
   const fetchBadges = useCallback(async () => {
@@ -58,11 +59,35 @@ export function useBadges() {
     }
   }, [user]);
 
-  // Award nth_user badge
+  // Award nth_user badge (only for new users)
   const awardBadge = useCallback(async () => {
     if (!user) return;
 
     try {
+      // Check if badge already exists
+      const { data: existingBadge } = await supabase
+        .from('badges')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('badge_type', 'nth_user')
+        .single();
+
+      if (existingBadge) {
+        // Badge already exists, don't show modal
+        setBadges([existingBadge]);
+        return;
+      }
+
+      // Check if user has seen badge before (localStorage)
+      const hasSeenBadgeKey = `badge-seen-${user.id}`;
+      const hasSeenBefore = localStorage.getItem(hasSeenBadgeKey);
+      
+      if (hasSeenBefore) {
+        // User has seen badge before, don't show modal
+        return;
+      }
+
+      // Create new badge and show modal only for truly new users
       const { data, error } = await supabase
         .from('badges')
         .insert({
@@ -75,6 +100,9 @@ export function useBadges() {
       if (!error && data) {
         setBadges([data]);
         setNewBadge(true);
+        setHasSeenBadge(true);
+        // Mark as seen in localStorage
+        localStorage.setItem(hasSeenBadgeKey, 'true');
       }
     } catch (error) {
       console.error('Error awarding badge:', error);
@@ -101,7 +129,11 @@ export function useBadges() {
   // Clear new badge notification
   const clearNewBadge = useCallback(() => {
     setNewBadge(false);
-  }, []);
+    if (user) {
+      const hasSeenBadgeKey = `badge-seen-${user.id}`;
+      localStorage.setItem(hasSeenBadgeKey, 'true');
+    }
+  }, [user]);
 
   // Initial fetch and periodic checks
   useEffect(() => {
@@ -114,11 +146,18 @@ export function useBadges() {
     }
   }, [user, badges.length, checkForNewBadges]);
 
+  // Check if user has unread notifications (badges)
+  const hasUnreadNotifications = useCallback(() => {
+    return badges.length > 0 && !hasSeenBadge;
+  }, [badges.length, hasSeenBadge]);
+
   return {
     badges,
     loading,
     newBadge,
     userPosition,
+    hasSeenBadge,
+    hasUnreadNotifications: hasUnreadNotifications(),
     fetchBadges,
     awardBadge,
     clearNewBadge,

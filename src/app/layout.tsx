@@ -4,6 +4,7 @@ import NavBar from '@/components/NavBar';
 import ClientRoot from '@/components/ClientRoot';
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://nimabalo.uz'),
   title: "Nimabalo",
   description: "Savollaringizga javob toping",
   keywords: [
@@ -17,7 +18,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Nimabalo",
     description: "Savollaringizga javob toping",
-    url: "https://nimabalo.com/",
+    url: "https://nimabalo.uz/",
     siteName: "Nimabalo",
     images: [
       {

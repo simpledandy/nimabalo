@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import { strings, formatString } from '@/lib/strings';
 
 interface BadgeModalProps {
   isOpen: boolean;
@@ -10,11 +11,9 @@ interface BadgeModalProps {
 }
 
 const BADGE_CONFIG = {
-  title: "Siz nimabalo.uzda {position}-foydalanuvchi bo'ldingiz!",
-  description: "Tasavvur qiling, millionlab odamlar ishlatayotganda siz bu yorlig'iniz bilan qancha maqtanishingiz mumkin! Eng muhimi, sizda dalil bor - bu yorlig'! Baxtli kashfiyotlar! 🎉",
   emoji: "🤩",
   color: "from-emerald-500 via-teal-500 to-cyan-500",
-  bgColor: "bg-gradient-to-r from-emerald-500/20 via-teal-500/20 to-cyan-500/20",
+  bgColor: "bg-white",
   borderColor: "border-emerald-500/30",
   textColor: "text-emerald-700",
   special: true
@@ -85,18 +84,15 @@ export default function BadgeModal({ isOpen, onClose, userPosition }: BadgeModal
           {/* Badge title with brand name styling */}
           <h2 className={`relative z-10 text-2xl md:text-3xl font-extrabold mb-4 ${BADGE_CONFIG.textColor} leading-tight`}>
             {(() => {
-              let title = BADGE_CONFIG.title;
-              
-              // Replace {position} placeholder
-              if (position !== null) {
-                title = title.replace('{position}', position.toString());
-              }
+              const title = position !== null 
+                ? formatString(strings.badge.title, { position: position })
+                : strings.badge.title;
               
               return title.split('nimabalo.uz').map((part, index, array) => (
                 <span key={index}>
                   {part}
                   {index < array.length - 1 && (
-                    <span className="font-black text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary animate-glow">
+                    <span className="font-black text-primary bg-clip-text bg-gradient-to-r from-primary to-secondary animate-glow">
                       nimabalo.uz
                     </span>
                   )}
@@ -107,7 +103,7 @@ export default function BadgeModal({ isOpen, onClose, userPosition }: BadgeModal
           
           {/* Badge description */}
           <p className={`relative z-10 text-base md:text-lg ${BADGE_CONFIG.textColor} mb-8 leading-relaxed opacity-90`}>
-            {BADGE_CONFIG.description}
+            {strings.badge.description}
           </p>
           
           {/* Action button */}
@@ -116,19 +112,15 @@ export default function BadgeModal({ isOpen, onClose, userPosition }: BadgeModal
             onClick={onClose}
           >
             <span className="mr-2 animate-bounce-slow">🎉</span>
-            Rahmat!
+            {strings.badge.thankYou}
           </button>
 
           {/* Decorative elements */}
           <div className="absolute -top-3 -left-3 w-16 h-16 rounded-xl rotate-[-12deg] shadow-lg overflow-hidden opacity-80">
-            <div className={`w-full h-1/3 bg-gradient-to-r ${BADGE_CONFIG.color}`} />
-            <div className="w-full h-1/3 bg-white" />
-            <div className={`w-full h-1/3 bg-gradient-to-r ${BADGE_CONFIG.color}`} />
+            <div className={`w-full h-full bg-gradient-to-br ${BADGE_CONFIG.color} rounded-xl`} />
           </div>
           <div className="absolute -bottom-3 -right-3 w-16 h-16 rounded-xl rotate-[15deg] shadow-lg overflow-hidden opacity-80">
-            <div className={`w-full h-1/3 bg-gradient-to-r ${BADGE_CONFIG.color}`} />
-            <div className="w-full h-1/3 bg-white" />
-            <div className={`w-full h-1/3 bg-gradient-to-r ${BADGE_CONFIG.color}`} />
+            <div className={`w-full h-full bg-gradient-to-br ${BADGE_CONFIG.color} rounded-xl`} />
           </div>
         </div>
       </div>

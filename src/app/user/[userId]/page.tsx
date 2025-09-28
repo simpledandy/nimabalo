@@ -1,17 +1,19 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useSession } from '@/lib/useSession';
 import { supabase } from '@/lib/supabaseClient';
+import { strings } from '@/lib/strings';
 import { BadgeList } from '@/components/BadgeDisplay';
 import ProfileIconButton from '@/components/ProfileIconButton';
 import Link from 'next/link';
 
-export default function PublicProfilePage() {
+export default function UserProfileByIdPage() {
   const params = useParams<{ userId: string }>();
   const userId = params?.userId as string;
   const { user: currentUser } = useSession();
+  const router = useRouter();
   const [profile, setProfile] = useState<any>(null);
   const [userPosition, setUserPosition] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -22,7 +24,7 @@ export default function PublicProfilePage() {
     
     const fetchProfile = async () => {
       try {
-        // Fetch user profile
+        // Fetch user profile by user ID
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('*')
@@ -30,7 +32,7 @@ export default function PublicProfilePage() {
           .single();
 
         if (profileError) {
-          setError('Foydalanuvchi topilmadi');
+          setError(strings.errors.userNotFound);
           return;
         }
 
@@ -73,14 +75,14 @@ export default function PublicProfilePage() {
     return (
       <div className="card animate-scale-in hover-lift text-center">
         <div className="text-4xl mb-4">😕</div>
-        <h2 className="text-xl font-bold text-primary mb-2">Foydalanuvchi topilmadi</h2>
-        <p className="text-neutral mb-4">{error || 'Bu foydalanuvchi mavjud emas'}</p>
-        <Link href="/" className="btn">Bosh sahifaga qaytish</Link>
+        <h2 className="text-xl font-bold text-primary mb-2">{strings.errors.userNotFound}</h2>
+        <p className="text-neutral mb-4">{error || strings.errors.userNotFoundMessage}</p>
+        <Link href="/" className="btn">{strings.errors.goHome}</Link>
       </div>
     );
   }
 
-  const isOwnProfile = currentUser?.id === userId;
+  const isOwnProfile = currentUser?.id === profile.id;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-sky-50 animate-fade-in-up">
@@ -92,7 +94,7 @@ export default function PublicProfilePage() {
             {/* Profile Avatar */}
             <div className="relative">
               <ProfileIconButton 
-                userId={userId} 
+                userId={profile.id} 
                 size="large" 
                 className="w-24 h-24 border-4 border-white shadow-xl"
               />
@@ -104,20 +106,20 @@ export default function PublicProfilePage() {
             {/* Profile Info */}
             <div className="flex-1 text-white">
               <h1 className="text-3xl font-bold mb-2">
-                {profile.full_name || profile.username || 'Foydalanuvchi'}
+                {profile.full_name || profile.username || strings.profile.userProfile}
               </h1>
               <p className="text-white/80 text-lg mb-1">
                 @{profile.username || 'username'}
               </p>
               <p className="text-white/70 text-sm">
-                {profile.email || 'Email ko\'rsatilmagan'}
+                {isOwnProfile ? profile.email || strings.profile.messages.emailNotShown : strings.profile.messages.emailNotShownPublic}
               </p>
             </div>
             
             {/* Edit Button for own profile */}
             {isOwnProfile && (
               <Link href="/profile" className="btn-secondary">
-                Tahrirlash
+                {strings.profile.editProfile}
               </Link>
             )}
           </div>
@@ -131,15 +133,15 @@ export default function PublicProfilePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="card text-center hover-lift">
               <div className="text-3xl font-bold text-primary mb-2">0</div>
-              <div className="text-sm text-neutral">Savollar</div>
+              <div className="text-sm text-neutral">{strings.profile.stats.questions}</div>
             </div>
             <div className="card text-center hover-lift">
               <div className="text-3xl font-bold text-secondary mb-2">0</div>
-              <div className="text-sm text-neutral">Javoblar</div>
+              <div className="text-sm text-neutral">{strings.profile.stats.answers}</div>
             </div>
             <div className="card text-center hover-lift">
               <div className="text-3xl font-bold text-accent mb-2">{userPosition || 0}</div>
-              <div className="text-sm text-neutral">Pozitsiya</div>
+              <div className="text-sm text-neutral">{strings.profile.stats.position}</div>
             </div>
           </div>
 
@@ -147,27 +149,25 @@ export default function PublicProfilePage() {
           <div className="card space-y-6 hover-lift">
             <div className="flex items-center gap-3">
               <span className="text-2xl">👤</span>
-              <h2 className="text-xl font-bold text-primary">Profil ma'lumotlari</h2>
+              <h2 className="text-xl font-bold text-primary">{strings.profile.profileInfo}</h2>
             </div>
             
             <div className="grid gap-4">
               {profile.full_name && (
                 <div>
-                  <div className="text-sm font-medium text-primary mb-1">To'liq ism</div>
+                  <div className="text-sm font-medium text-primary mb-1">{strings.profile.fields.fullName}</div>
                   <div className="text-neutral">{profile.full_name}</div>
                 </div>
               )}
               
-              {profile.username && (
-                <div>
-                  <div className="text-sm font-medium text-primary mb-1">Iznom</div>
-                  <div className="text-neutral">@{profile.username}</div>
-                </div>
-              )}
+              <div>
+                <div className="text-sm font-medium text-primary mb-1">{strings.profile.fields.username}</div>
+                <div className="text-neutral">@{profile.username || 'username'}</div>
+              </div>
               
               <div>
-                <div className="text-sm font-medium text-primary mb-1">Email</div>
-                <div className="text-neutral">{profile.email || 'Ko\'rsatilmagan'}</div>
+                <div className="text-sm font-medium text-primary mb-1">{strings.profile.fields.email}</div>
+                <div className="text-neutral">{isOwnProfile ? profile.email || strings.profile.messages.emailNotShown : strings.profile.messages.emailNotShownPublic}</div>
               </div>
             </div>
           </div>

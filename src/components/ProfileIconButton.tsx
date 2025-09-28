@@ -19,6 +19,7 @@ export default function ProfileIconButton({
 }: ProfileIconButtonProps) {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -29,17 +30,23 @@ export default function ProfileIconButton({
           .eq('id', userId)
           .single();
         
-        if (!error && data) {
+        if (error) {
+          console.error('Error fetching profile:', error);
+          setError(error.message);
+        } else if (data) {
           setProfile(data);
         }
       } catch (error) {
         console.error('Error fetching profile:', error);
+        setError('Failed to load profile');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProfile();
+    if (userId) {
+      fetchProfile();
+    }
   }, [userId]);
 
   const sizeClasses = {
@@ -66,10 +73,25 @@ export default function ProfileIconButton({
     );
   }
 
+  // If there's an error or no profile, show a fallback
+  if (error || !profile) {
+    return (
+      <div 
+        className={`${sizeClasses[size]} rounded-full bg-gray-300 text-gray-600 font-bold flex items-center justify-center ${className}`}
+        title={showTooltip ? "Profile not available" : undefined}
+      >
+        <span className="select-none">?</span>
+      </div>
+    );
+  }
+
+  // Use username URL - if no username, link to profile setup
+  const profileUrl = profile?.username ? `/${profile.username}` : `/profile`;
+
   return (
     <Link 
-      href={`/profile/${userId}`}
-      className={`${sizeClasses[size]} rounded-full bg-gradient-to-br from-primary to-secondary text-white font-bold flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg ${className}`}
+      href={profileUrl}
+      className={`${sizeClasses[size]} rounded-full bg-white border-2 border-primary text-primary font-bold flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg hover:bg-primary hover:text-white ${className}`}
       title={showTooltip ? displayName : undefined}
     >
       {profile?.avatar_url ? (

@@ -5,11 +5,10 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 import { useSession } from '@/lib/useSession';
-import { useBadges } from '@/lib/useBadges';
+import { strings, formatString } from '@/lib/strings';
 import { timeAgo } from '@/lib/timeUtils';
 import SparkleEffect from '@/components/SparkleEffect';
 import ConfettiEffect from '@/components/ConfettiEffect';
-import BadgeModal from '@/components/BadgeModal';
 
 
 import QuestionSkeleton from '@/components/QuestionSkeleton';
@@ -38,7 +37,6 @@ export default function QuestionDetailPage() {
   const params = useParams<{ id: string }>();
   const id = params?.id as string;
   const { user } = useSession();
-  const { newBadge, clearNewBadge, userPosition } = useBadges();
 
   const [q, setQ] = useState<Question | null>(null);
   const [answers, setAnswers] = useState<Answer[]>([]);
@@ -108,7 +106,7 @@ export default function QuestionDetailPage() {
     setErr('');
     try {
       const body = answerText.trim();
-      if (body.length < 2) throw new Error('Javob juda qisqa.');
+      if (body.length < 2) throw new Error(strings.question.errors.answerTooShort);
       const { error } = await supabase.from('answers').insert({
         question_id: id,
         user_id: user!.id,
@@ -133,7 +131,7 @@ export default function QuestionDetailPage() {
         setTimeout(() => setAnswerCountAnimation(false), 1000);
       }
     } catch (e: any) {
-      setErr(e.message ?? 'Javobni yuborishda xatolik yuz berdi');
+      setErr(e.message ?? strings.question.errors.answerSubmitError);
     } finally {
       setPosting(false);
     }
@@ -145,8 +143,8 @@ export default function QuestionDetailPage() {
     <div className="min-h-screen bg-gradient-to-b from-white to-sky-50 flex items-center justify-center px-4">
       <div className="text-center">
         <div className="text-4xl mb-4 animate-shake">😕</div>
-        <div className="text-xl font-medium text-error">Savol topilmadi</div>
-        <div className="text-sm text-neutral mt-2">Bu savol mavjud emas yoki o'chirilgan</div>
+        <div className="text-xl font-medium text-error">{strings.errors.questionNotFound}</div>
+        <div className="text-sm text-neutral mt-2">{strings.errors.questionNotFoundMessage}</div>
       </div>
     </div>
   );
@@ -170,7 +168,7 @@ export default function QuestionDetailPage() {
         <div className="absolute bottom-20 right-10 text-3xl opacity-10 animate-bounce-slow">💡</div>
       </div>
 
-      <div className="container mx-auto px-4 py-6 sm:py-8 pt-20 sm:pt-24 max-w-4xl">
+      <div className="container mx-auto px-4 py-6 sm:py-8 pt-28 sm:pt-32 max-w-4xl">
         {/* Back to Questions Button */}
         <div className="mb-6 animate-fade-in-up">
           <a 
@@ -178,8 +176,8 @@ export default function QuestionDetailPage() {
             className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-light text-primary rounded-full font-medium hover:bg-accent hover:text-white transition-all duration-300 hover:scale-105 text-sm sm:text-base"
           >
             <span className="text-lg animate-bounce-slow">←</span>
-            <span className="hidden sm:inline">Barcha savollarga qaytish</span>
-            <span className="sm:hidden">Barcha savollar</span>
+            <span className="hidden sm:inline">{strings.question.backToQuestions}</span>
+            <span className="sm:hidden">{strings.question.backToQuestionsMobile}</span>
           </a>
         </div>
         
@@ -203,16 +201,16 @@ export default function QuestionDetailPage() {
               <div className="flex items-center justify-between text-xs sm:text-sm text-neutral mt-4 pt-4 border-t border-gray-100">
                 <div className="flex items-center gap-2">
                   <span className="animate-pulse">📅</span>
-                  <span>So'ralgan vaqti: {timeAgo(q.created_at)}</span>
+                  <span>{strings.question.askedTime} {timeAgo(q.created_at)}</span>
                 </div>
                 {questionAuthor && (
                   <div className="flex items-center gap-2">
                     <span className="animate-pulse">👤</span>
                     <Link 
-                      href={`/profile/${q.user_id}`}
+                      href={questionAuthor.username ? `/${questionAuthor.username}` : `/user/${q.user_id}`}
                       className="text-accent hover:text-secondary transition-colors font-medium"
                     >
-                      {questionAuthor.full_name || questionAuthor.username || 'Foydalanuvchi'}
+                      {questionAuthor.full_name || questionAuthor.username || strings.profile.userProfile}
                     </Link>
                   </div>
                 )}
@@ -220,13 +218,13 @@ export default function QuestionDetailPage() {
               
               {/* Action Buttons */}
               <div className="mt-4 flex justify-center gap-3 sm:gap-4 flex-wrap">
-                {/* Same count information - just the count, no text */}
+                {/* Same count information */}
                 {sameCount > 0 && (
                   <div className="w-full text-center mb-4">
                     <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent/10 text-accent rounded-full border border-accent/20">
                       <span className="text-lg">🤝</span>
                       <span className="font-medium text-sm sm:text-base">
-                        {sameCount}
+                        {sameCount} kishiga ham qiziq
                       </span>
                     </div>
                   </div>
@@ -240,7 +238,7 @@ export default function QuestionDetailPage() {
           <div className="space-y-4">
             <div className="flex items-center justify-between relative">
               <div className="flex items-center gap-3">
-                <h2 className="text-xl sm:text-2xl font-bold text-primary">Javoblar</h2>
+                <h2 className="text-xl sm:text-2xl font-bold text-primary">{strings.question.answers}</h2>
                 <div className={`bg-accent px-2 sm:px-3 py-1 rounded-full text-white font-medium flex items-center gap-1 transition-all duration-300 ${
                   answerCountAnimation ? 'scale-125 bg-secondary shadow-lg' : 'animate-scale-in'
                 }`}>
@@ -264,15 +262,15 @@ export default function QuestionDetailPage() {
               <div className="text-xs sm:text-sm text-neutral flex items-center gap-2 sm:gap-3 flex-wrap">
                 <div className="flex items-center gap-1">
                   <span>📊</span>
-                  <span>Jami {answers.length} ta javob</span>
+                  <span>{formatString(strings.question.totalAnswers, { count: answers.length })}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <span>📝</span>
-                  <span>O'rtacha {Math.round(answers.reduce((sum, a) => sum + a.body.length, 0) / answers.length)} belgi</span>
+                  <span>{formatString(strings.question.averageLength, { length: Math.round(answers.reduce((sum, a) => sum + a.body.length, 0) / answers.length) })}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <span>⭐</span>
-                  <span>{answers.filter(a => a.body.length > 200).length} ta batafsil javob</span>
+                  <span>{formatString(strings.question.detailedAnswers, { count: answers.filter(a => a.body.length > 200).length })}</span>
                 </div>
               </div>
             )}
@@ -282,8 +280,8 @@ export default function QuestionDetailPage() {
                 <div className="absolute inset-0 bg-gradient-to-br from-accent/10 to-transparent opacity-50"></div>
                 <div className="relative z-10">
                   <div className="text-6xl sm:text-8xl mb-6 animate-bounce-slow">🤷‍♂️</div>
-                  <h3 className="text-xl sm:text-2xl font-bold text-primary mb-3">Hali javoblar yo'q</h3>
-                  <p className="text-neutral mb-6 text-base sm:text-lg">Birinchi javobni siz bering! 💡</p>
+                  <h3 className="text-xl sm:text-2xl font-bold text-primary mb-3">{strings.question.noAnswers}</h3>
+                  <p className="text-neutral mb-6 text-base sm:text-lg">{strings.question.noAnswersSubtitle}</p>
                 </div>
               </div>
                           ) : (
@@ -318,19 +316,19 @@ export default function QuestionDetailPage() {
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-xs sm:text-sm text-neutral pt-3 border-t border-gray-100 gap-2 sm:gap-3">
                         <div className="flex items-center gap-2">
                           <span className="animate-pulse">⏰</span>
-                          <span>Javob berilgan vaqti: {timeAgo(answer.created_at)}</span>
+                          <span>{strings.question.answerTime} {timeAgo(answer.created_at)}</span>
                         </div>
                         <div className="flex items-center gap-2 sm:gap-3">
                           <div className="flex items-center gap-1">
                             <span className="text-warm">📝</span>
-                            <span className="text-warm">{answer.body.length} belgi</span>
+                            <span className="text-warm">{formatString(strings.question.answerLength, { length: answer.body.length })}</span>
                             {answer.body.length > 200 && (
-                              <span className="text-success ml-1" title="Batafsil javob">✨</span>
+                              <span className="text-success ml-1" title={strings.question.detailedAnswerTooltip}>✨</span>
                             )}
                           </div>
                           <div className="flex items-center gap-1">
                             <span className="text-accent">👤</span>
-                            <span className="text-accent">Foydalanuvchi</span>
+                            <span className="text-accent">{strings.question.authorLabel}</span>
                           </div>
                         </div>
                       </div>
@@ -344,18 +342,18 @@ export default function QuestionDetailPage() {
           {/* Answer Form */}
           <div className="card space-y-4 hover-lift">
             <div className="flex items-center gap-2">
-              <h3 className="text-lg sm:text-xl font-bold text-primary">Javob yozing</h3>
+              <h3 className="text-lg sm:text-xl font-bold text-primary">{strings.question.writeAnswer}</h3>
               <span className="text-2xl animate-bounce-slow">✍️</span>
             </div>
             
             {!user ? (
               <div className="text-center py-6 sm:py-8">
                 <div className="text-4xl mb-4 animate-bounce-slow">💭</div>
-                <p className="text-base sm:text-lg text-neutral mb-4">Bilimingizni ko'rsating!</p>
+                <p className="text-base sm:text-lg text-neutral mb-4">{strings.question.showKnowledge}</p>
                 <div className="space-y-4">
                   <textarea
                     className="textarea min-h-[120px] text-base sm:text-lg"
-                    placeholder="Foydali va batafsil javob yozing... 💡"
+                    placeholder={strings.question.answerPlaceholder}
                     value={answerText}
                     onChange={(e) => setAnswerText(e.target.value)}
                     style={{
@@ -369,10 +367,10 @@ export default function QuestionDetailPage() {
                     className="btn w-full text-base sm:text-lg py-3 sm:py-4 font-bold transition-all duration-300 hover:scale-105 active:scale-95"
                   >
                     <span className="animate-bounce-slow">🚀</span>
-                    Javobni yuborish
+                    {strings.question.answerButton}
                   </button>
                   <div className="text-center text-accent text-sm opacity-70">
-                    💡 Javob bera olish mazza, shunday emasmi? 😉
+                    {strings.question.answerTip}
                   </div>
                 </div>
               </div>
@@ -381,7 +379,7 @@ export default function QuestionDetailPage() {
                 <div className="relative">
                   <textarea
                     className="textarea min-h-[120px] text-base sm:text-lg"
-                    placeholder="Foydali va batafsil javob yozing... 💡"
+                    placeholder={strings.question.answerPlaceholder}
                     value={answerText}
                     onChange={(e) => setAnswerText(e.target.value)}
                     style={{
@@ -404,10 +402,10 @@ export default function QuestionDetailPage() {
 
                 {/* Success message */}
                 {showSuccess && (
-                  <div className="text-center text-success text-base sm:text-lg font-medium animate-fade-in-up bg-green-50 p-4 rounded-lg border border-green-200 flex items-center justify-center gap-2">
-                    <span className="animate-bounce-slow">🎉</span>
-                    Javobingiz muvaffaqiyatli yuborildi! 🚀
-                  </div>
+              <div className="text-center text-success text-base sm:text-lg font-medium animate-fade-in-up bg-green-50 p-4 rounded-lg border border-green-200 flex items-center justify-center gap-2">
+                <span className="animate-bounce-slow">🎉</span>
+                {strings.question.answerSuccess}
+              </div>
                 )}
 
                 <button
@@ -423,12 +421,12 @@ export default function QuestionDetailPage() {
                   {posting ? (
                     <span className="flex items-center justify-center gap-2">
                       <span className="animate-spin">⏳</span>
-                      Yuborilmoqda…
+                      {strings.question.answerSubmitting}
                     </span>
                   ) : (
                     <span className="flex items-center justify-center gap-2">
                       <span className="animate-bounce-slow">🚀</span>
-                      Javob yuborish!
+                      {strings.question.answerButton}
                     </span>
                   )}
                 </button>
@@ -436,7 +434,7 @@ export default function QuestionDetailPage() {
                 {/* Helpful tip */}
                 {!answerText && !posting && (
                   <div className="text-center text-accent text-sm opacity-70 animate-pulse">
-                    💡 Maslahat: Batafsil va foydali javob yozing!
+                    {strings.question.answerTip}
                   </div>
                 )}
               </>
@@ -452,16 +450,10 @@ export default function QuestionDetailPage() {
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
-        title="Javobingizni yetkazish uchun foydalanuvchiga aylaning🤗"
-        message="Javobingizni saqlash va boshqalarga yordam berish uchun tizimga kiring yoki ro'yxatdan o'ting"
+        title={strings.authModal.titles.answerQuestion}
+        message={strings.authModal.messages.answerQuestion}
       />
 
-      {/* Badge Modal */}
-      <BadgeModal
-        isOpen={!!newBadge}
-        onClose={clearNewBadge}
-        userPosition={userPosition}
-      />
     </div>
   );
 }

@@ -1,7 +1,8 @@
 "use client";
 
+import { strings, formatString } from '@/lib/strings';
+
 const BADGE_CONFIG = {
-  title: "Siz nimabalo.uzda x-foydalanuvchi bo'ldingiz!",
   emoji: "🤩",
   color: "from-emerald-500 via-teal-500 to-cyan-500",
   special: true
@@ -33,8 +34,8 @@ export default function BadgeDisplay({
   };
 
   const displayTitle = userPosition 
-    ? BADGE_CONFIG.title.replace('x', userPosition.toString())
-    : BADGE_CONFIG.title;
+    ? formatString(strings.badge.displayTitle, { position: userPosition })
+    : strings.badge.displayTitle;
 
   return (
     <div className={`inline-flex items-center gap-2 rounded-full font-semibold transition-all duration-300 hover:scale-105 ${sizeClasses[size]} bg-gradient-to-r ${BADGE_CONFIG.color} text-white shadow-md ${className}`}>
@@ -56,7 +57,7 @@ export function BadgeList({ userPosition }: { userPosition?: number | null }) {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold text-primary">Yorliqlaringiz</h2>
+      <h2 className="text-xl font-bold text-primary">{strings.badge.sectionTitle}</h2>
       <div className="flex flex-wrap gap-3">
         <BadgeDisplay size="medium" userPosition={userPosition} />
       </div>
