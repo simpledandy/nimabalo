@@ -7,6 +7,9 @@ import { supabase } from '@/lib/supabaseClient';
 import { strings } from '@/lib/strings';
 import { BadgeList } from '@/components/BadgeDisplay';
 import ProfileIconButton from '@/components/ProfileIconButton';
+import StatsCard from '@/components/StatsCard';
+import UserContentList from '@/components/UserContentList';
+import ActivityCard from '@/components/ActivityCard';
 import Link from 'next/link';
 
 export default function UserProfilePage() {
@@ -18,6 +21,9 @@ export default function UserProfilePage() {
   const [userPosition, setUserPosition] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [userStats, setUserStats] = useState({ questions: 0, answers: 0 });
+  const [userActivities, setUserActivities] = useState<any[]>([]);
+  const [loadingStats, setLoadingStats] = useState(true);
 
   useEffect(() => {
     if (!username) return;
@@ -61,6 +67,50 @@ export default function UserProfilePage() {
             .lte('created_at', profileData.created_at);
           
           setUserPosition(count || 0);
+        }
+
+        // Fetch user statistics and activities
+        setLoadingStats(true);
+        try {
+          // Fetch user statistics
+          const [questionsResult, answersResult] = await Promise.all([
+            supabase.from('questions').select('id', { count: 'exact' }).eq('user_id', profileData.id),
+            supabase.from('answers').select('id', { count: 'exact' }).eq('user_id', profileData.id)
+          ]);
+
+          setUserStats({
+            questions: questionsResult.count || 0,
+            answers: answersResult.count || 0
+          });
+
+          // Fetch recent activities (last 10 questions and answers)
+          const [recentQuestions, recentAnswers] = await Promise.all([
+            supabase
+              .from('questions')
+              .select('id, title, created_at')
+              .eq('user_id', profileData.id)
+              .order('created_at', { ascending: false })
+              .limit(5),
+            supabase
+              .from('answers')
+              .select('id, body, created_at, question_id, questions!inner(title)')
+              .eq('user_id', profileData.id)
+              .order('created_at', { ascending: false })
+              .limit(5)
+          ]);
+
+          // Combine and sort activities by date
+          const activities = [
+            ...(recentQuestions.data || []).map(q => ({ ...q, type: 'question' })),
+            ...(recentAnswers.data || []).map(a => ({ ...a, type: 'answer' }))
+          ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+           .slice(0, 10);
+
+          setUserActivities(activities);
+        } catch (error) {
+          console.error('Error fetching user stats:', error);
+        } finally {
+          setLoadingStats(false);
         }
       } catch (err) {
         console.error('Error fetching profile:', err);
@@ -133,7 +183,7 @@ export default function UserProfilePage() {
             
             {/* Edit Button for own profile */}
             {isOwnProfile && (
-              <Link href="/profile" className="btn-secondary">
+              <Link href={`/user/${profile.id}`} className="btn-secondary">
                 {strings.profile.editProfile}
               </Link>
             )}
@@ -146,51 +196,83 @@ export default function UserProfilePage() {
         <div className="grid gap-6">
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="card text-center hover-lift">
-              <div className="text-3xl font-bold text-primary mb-2">0</div>
-              <div className="text-sm text-neutral">{strings.profile.stats.questions}</div>
-            </div>
-            <div className="card text-center hover-lift">
-              <div className="text-3xl font-bold text-secondary mb-2">0</div>
-              <div className="text-sm text-neutral">{strings.profile.stats.answers}</div>
-            </div>
-            <div className="card text-center hover-lift">
-              <div className="text-3xl font-bold text-accent mb-2">{userPosition || 0}</div>
-              <div className="text-sm text-neutral">{strings.profile.stats.position}</div>
-            </div>
+            <StatsCard 
+              value={userStats.questions}
+              label={strings.profile.stats.questions}
+              color="primary"
+              loading={loadingStats}
+            />
+            <StatsCard 
+              value={userStats.answers}
+              label={strings.profile.stats.answers}
+              color="secondary"
+              loading={loadingStats}
+            />
+            <StatsCard 
+              value={userPosition || 0}
+              label={strings.profile.stats.position}
+              color="accent"
+            />
           </div>
 
-          {/* Profile Info Card */}
-          <div className="card space-y-6 hover-lift">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">👤</span>
-              <h2 className="text-xl font-bold text-primary">{strings.profile.profileInfo}</h2>
-            </div>
-            
-            <div className="grid gap-4">
-              {profile.full_name && (
-                <div>
-                  <div className="text-sm font-medium text-primary mb-1">{strings.profile.fields.fullName}</div>
-                  <div className="text-neutral">{profile.full_name}</div>
-                </div>
-              )}
-              
-              <div>
-                <div className="text-sm font-medium text-primary mb-1">{strings.profile.fields.username}</div>
-                <div className="text-neutral">@{profile.username}</div>
-              </div>
-              
-              <div>
-                <div className="text-sm font-medium text-primary mb-1">{strings.profile.fields.email}</div>
-                <div className="text-neutral">{isOwnProfile ? profile.email || strings.profile.messages.emailNotShown : strings.profile.messages.emailNotShownPublic}</div>
-              </div>
-            </div>
-          </div>
 
           {/* Badges Section */}
           <div className="card hover-lift">
-            <BadgeList userPosition={userPosition} />
+            <BadgeList 
+              userPosition={userPosition} 
+              isOwnProfile={isOwnProfile}
+              profileName={profile.full_name || profile.username || 'User'}
+            />
           </div>
+
+          {/* Recent Activity Section */}
+          <div className="card hover-lift">
+            <div className="flex items-center gap-3 mb-6">
+              <span className="text-2xl">📊</span>
+              <h2 className="text-xl font-bold text-primary">So'nggi faoliyat</h2>
+            </div>
+            
+            {loadingStats ? (
+              <div className="text-center py-8">
+                <div className="animate-spin text-2xl mb-2">⏳</div>
+                <p className="text-neutral">Yuklanmoqda...</p>
+              </div>
+            ) : userActivities.length === 0 ? (
+              <div className="text-center py-8">
+                <div className="text-4xl mb-4">📝</div>
+                <p className="text-neutral mb-2">Hali faoliyat yo'q</p>
+                <p className="text-sm text-neutral">Savol bering yoki javob yozing!</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {userActivities.map((activity, index) => (
+                  <ActivityCard 
+                    key={`${activity.type}-${activity.id}`}
+                    activity={activity}
+                    index={index}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* User's Questions Section */}
+          <UserContentList 
+            userId={profile.id} 
+            type="questions" 
+            limit={3}
+            isOwnProfile={isOwnProfile}
+            profileName={profile.full_name || profile.username || 'User'}
+          />
+
+          {/* User's Answers Section */}
+          <UserContentList 
+            userId={profile.id} 
+            type="answers" 
+            limit={3}
+            isOwnProfile={isOwnProfile}
+            profileName={profile.full_name || profile.username || 'User'}
+          />
         </div>
       </div>
     </div>

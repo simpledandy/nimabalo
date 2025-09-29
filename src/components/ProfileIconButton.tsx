@@ -85,8 +85,8 @@ export default function ProfileIconButton({
     );
   }
 
-  // Use username URL - if no username, link to profile setup
-  const profileUrl = profile?.username ? `/${profile.username}` : `/profile`;
+  // Use username URL - if no username, link to user ID route
+  const profileUrl = profile?.username ? `/${profile.username}` : `/user/${profile.id}`;
 
   return (
     <Link 

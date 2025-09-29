@@ -52,12 +52,28 @@ export default function BadgeDisplay({
 }
 
 // Badge list component for profile page
-export function BadgeList({ userPosition }: { userPosition?: number | null }) {
+export function BadgeList({ 
+  userPosition, 
+  isOwnProfile = false, 
+  profileName = '' 
+}: { 
+  userPosition?: number | null;
+  isOwnProfile?: boolean;
+  profileName?: string;
+}) {
   if (!userPosition) return null;
+
+  const getTitle = () => {
+    if (isOwnProfile) {
+      return strings.badge.sectionTitle; // "Yorliqlaringiz"
+    } else {
+      return `${profileName}ning yorliqlari`; // "[User]'s badges"
+    }
+  };
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold text-primary">{strings.badge.sectionTitle}</h2>
+      <h2 className="text-xl font-bold text-primary">{getTitle()}</h2>
       <div className="flex flex-wrap gap-3">
         <BadgeDisplay size="medium" userPosition={userPosition} />
       </div>
