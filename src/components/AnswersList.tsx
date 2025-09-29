@@ -83,14 +83,6 @@ export default function AnswersList({
             <span>📊</span>
             <span>{formatString(strings.question.totalAnswers, { count: answers.length })}</span>
           </div>
-          <div className="flex items-center gap-1">
-            <span>📝</span>
-            <span>{formatString(strings.question.averageLength, { length: Math.round(answers.reduce((sum, a) => sum + a.body.length, 0) / answers.length) })}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <span>⭐</span>
-            <span>{formatString(strings.question.detailedAnswers, { count: answers.filter(a => a.body.length > 200).length })}</span>
-          </div>
         </div>
       )}
       

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
-import { strings, formatString } from '@/lib/strings';
+import { strings } from '@/lib/strings';
 import { timeAgo } from '@/lib/timeUtils';
 import AnswerPreview from './AnswerPreview';
 
@@ -106,13 +106,6 @@ export default function AnswerCard({
             <span>{strings.question.answerTime} {timeAgo(answer.created_at)}</span>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="flex items-center gap-1">
-              <span className="text-warm">📝</span>
-              <span className="text-warm">{formatString(strings.question.answerLength, { length: answer.body.length })}</span>
-              {answer.body.length > 200 && (
-                <span className="text-success ml-1" title={strings.question.detailedAnswerTooltip}>✨</span>
-              )}
-            </div>
             <div className="flex items-center gap-1">
               <span className="text-accent">👤</span>
               <Link 

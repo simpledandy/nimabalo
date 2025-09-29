@@ -20,10 +20,10 @@ export default function AnswerSorting({ onSortChange, currentSort }: AnswerSorti
   ] as const;
 
   return (
-    <div className="relative">
+    <div className="relative z-[9999]">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-2 bg-light text-primary rounded-lg font-medium hover:bg-accent hover:text-white transition-all duration-300 hover:scale-105"
+        className="flex items-center gap-2 px-3 py-2 bg-light text-primary rounded-lg font-medium hover:bg-accent hover:text-white transition-all duration-300 hover:scale-105 relative z-[9999]"
       >
         <span className="animate-bounce-slow">🔀</span>
         <span>Saralash</span>
@@ -31,7 +31,7 @@ export default function AnswerSorting({ onSortChange, currentSort }: AnswerSorti
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-48 animate-fade-in-up">
+        <div className="absolute top-full left-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-[9999] min-w-48 animate-fade-in-up" style={{ zIndex: 9999, position: 'relative' }}>
           {sortOptions.map((option) => (
             <button
               key={option.value}
@@ -39,9 +39,10 @@ export default function AnswerSorting({ onSortChange, currentSort }: AnswerSorti
                 onSortChange(option.value);
                 setIsOpen(false);
               }}
-              className={`w-full text-left px-4 py-3 hover:bg-light transition-colors flex items-center gap-2 ${
+              className={`w-full text-left px-4 py-3 hover:bg-light transition-colors flex items-center gap-2 relative z-[9999] ${
                 currentSort === option.value ? 'bg-accent text-white font-medium' : 'text-primary'
               }`}
+              style={{ zIndex: 9999 }}
             >
               <span className="text-lg">{option.icon}</span>
               <span>{option.label}</span>
