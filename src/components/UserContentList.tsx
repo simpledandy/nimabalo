@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { strings } from '@/lib/strings';
+import { strings, formatString } from '@/lib/strings';
+import LoadingSkeleton from './LoadingSkeleton';
 import QuestionCard from './QuestionCard';
 import AnswerCard from './AnswerPreview';
 import Link from 'next/link';
@@ -22,7 +23,7 @@ type Answer = {
   created_at: string;
   user_id: string;
   question_id: string;
-  questions?: { title: string };
+  questions?: { title: string } | { title: string }[];
 };
 
 interface UserContentListProps {
@@ -85,14 +86,14 @@ export default function UserContentList({
   const getTitle = () => {
     if (isOwnProfile) {
       if (type === 'questions') {
-        return 'Mening savollarim';
+        return strings.userContentList.myQuestions;
       }
-      return 'Mening javoblarim';
+      return strings.userContentList.myAnswers;
     } else {
       if (type === 'questions') {
-        return `${profileName}ning savollari`;
+        return formatString(strings.userContentList.userQuestions, { name: profileName });
       }
-      return `${profileName}ning javoblari`;
+      return formatString(strings.userContentList.userAnswers, { name: profileName });
     }
   };
 
@@ -103,14 +104,14 @@ export default function UserContentList({
   const getEmptyMessage = () => {
     if (isOwnProfile) {
       if (type === 'questions') {
-        return 'Hali savol berilmagan';
+        return strings.userContentList.noQuestionsYet;
       }
-      return 'Hali javob berilmagan';
+      return strings.userContentList.noAnswersYet;
     } else {
       if (type === 'questions') {
-        return `${profileName} hali savol bermagan`;
+        return formatString(strings.userContentList.userNoQuestionsYet, { name: profileName });
       }
-      return `${profileName} hali javob bermagan`;
+      return formatString(strings.userContentList.userNoAnswersYet, { name: profileName });
     }
   };
 
@@ -123,10 +124,7 @@ export default function UserContentList({
             <h2 className="text-xl font-bold text-primary">{getTitle()}</h2>
           </div>
         )}
-        <div className="text-center py-8">
-          <div className="animate-spin text-2xl mb-2">⏳</div>
-          <p className="text-neutral">Yuklanmoqda...</p>
-        </div>
+        <LoadingSkeleton variant="card" lines={4} />
       </div>
     );
   }
@@ -144,7 +142,7 @@ export default function UserContentList({
           <div className="text-4xl mb-4">📝</div>
           <p className="text-neutral mb-2">{getEmptyMessage()}</p>
           <p className="text-sm text-neutral">
-            {type === 'questions' ? 'Birinchi savolingizni bering!' : 'Birinchi javobingizni yozing!'}
+            {type === 'questions' ? strings.userContentList.firstQuestionPrompt : strings.userContentList.firstAnswerPrompt}
           </p>
         </div>
       </div>
@@ -181,7 +179,13 @@ export default function UserContentList({
                   href={`/q/${(item as Answer).question_id}`}
                   className="text-sm font-medium text-accent hover:text-secondary transition-colors block mb-1"
                 >
-                  {(item as Answer).questions?.title}
+                  {(() => {
+                    const questions = (item as Answer).questions;
+                    if (Array.isArray(questions)) {
+                      return questions[0]?.title;
+                    }
+                    return questions?.title;
+                  })()}
                 </Link>
                 <div className="text-sm text-neutral mb-2 line-clamp-2">
                   {(item as Answer).body.substring(0, 100)}...

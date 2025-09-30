@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { strings } from '@/lib/strings';
 
 interface ConfirmationModalProps {
   isOpen: boolean;
@@ -19,10 +20,10 @@ export default function ConfirmationModal({
   isOpen, 
   onClose, 
   onConfirm,
-  title = "Tasdiqlash kerak",
-  message = "Bu amalni bajarishni xohlaysizmi?",
-  confirmText = "Ha, tasdiqlash",
-  cancelText = "Bekor qilish",
+  title = strings.confirmation.defaultTitle,
+  message = strings.confirmation.defaultMessage,
+  confirmText = strings.confirmation.defaultConfirm,
+  cancelText = strings.confirmation.defaultCancel,
   confirmButtonStyle = 'danger',
   icon = '⚠️'
 }: ConfirmationModalProps) {

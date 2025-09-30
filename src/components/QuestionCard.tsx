@@ -76,7 +76,7 @@ export default function QuestionCard({
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent/10 text-accent rounded-full border border-accent/20">
                 <span className="text-lg">🤝</span>
                 <span className="font-medium text-sm sm:text-base">
-                  {question.same_count} kishiga ham qiziq
+                  {question.same_count} {strings.ui.kishigaHamQiziq}
                 </span>
               </div>
             </div>

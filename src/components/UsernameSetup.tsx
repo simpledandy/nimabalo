@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { generateSuggestedUsername, validateUsername, isUsernameAvailable, generateAlternatives } from '@/lib/usernameUtils';
+import { generateSuggestedUsername } from '@/lib/usernameUtils';
 import { strings } from '@/lib/strings';
+import UsernameInput from './UsernameInput';
 
 interface UsernameSetupProps {
   user: any;
@@ -14,10 +15,7 @@ interface UsernameSetupProps {
 export default function UsernameSetup({ user, onComplete, onSkip }: UsernameSetupProps) {
   const [username, setUsername] = useState('');
   const [suggestedUsername, setSuggestedUsername] = useState('');
-  const [alternatives, setAlternatives] = useState<string[]>([]);
-  const [isValidating, setIsValidating] = useState(false);
-  const [validationError, setValidationError] = useState<string | null>(null);
-  const [isAvailable, setIsAvailable] = useState<boolean | null>(null);
+  const [isValid, setIsValid] = useState<boolean | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   // Generate initial suggestion when component mounts
@@ -26,43 +24,11 @@ export default function UsernameSetup({ user, onComplete, onSkip }: UsernameSetu
       const suggested = generateSuggestedUsername(user.email, user.user_metadata?.full_name);
       setSuggestedUsername(suggested);
       setUsername(suggested);
-      setAlternatives(generateAlternatives(suggested));
     }
   }, [user]);
 
-  // Validate username as user types
-  useEffect(() => {
-    if (!username) {
-      setValidationError(null);
-      setIsAvailable(null);
-      return;
-    }
-
-    const validation = validateUsername(username);
-    if (!validation.valid) {
-      setValidationError(validation.error || null);
-      setIsAvailable(false);
-      return;
-    }
-
-    setValidationError(null);
-    
-    // Check availability with debounce
-    const timeoutId = setTimeout(async () => {
-      setIsValidating(true);
-      const result = await isUsernameAvailable(username, supabase);
-      setIsAvailable(result.available);
-      if (!result.available && result.error) {
-        setValidationError(result.error);
-      }
-      setIsValidating(false);
-    }, 500);
-
-    return () => clearTimeout(timeoutId);
-  }, [username]);
-
   const handleSave = async () => {
-    if (!username || !isAvailable) return;
+    if (!username || !isValid) return;
 
     setIsSaving(true);
     try {
@@ -76,13 +42,13 @@ export default function UsernameSetup({ user, onComplete, onSkip }: UsernameSetu
         });
 
       if (error) {
-        setValidationError('Error saving username. Please try again.');
+        console.error('Error saving username:', error);
         return;
       }
 
       onComplete(username);
     } catch (err) {
-      setValidationError('Error saving username. Please try again.');
+      console.error('Error saving username:', err);
     } finally {
       setIsSaving(false);
     }
@@ -114,73 +80,24 @@ export default function UsernameSetup({ user, onComplete, onSkip }: UsernameSetu
             <h2 className="text-xl font-bold text-primary">{strings.profile.usernameSetup.pickUsername}</h2>
           </div>
           
-          <div className="space-y-4">
-            <label className="block">
-              <span className="text-sm font-medium text-primary mb-2 block">{strings.profile.usernameSetup.usernameLabel}</span>
-              <div className="relative">
-                <input
-                  className="input pr-12"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value.toLowerCase())}
-                  placeholder={strings.profile.usernameSetup.usernamePlaceholder}
-                  maxLength={20}
-                />
-                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
-                  {isValidating && (
-                    <div className="animate-spin w-4 h-4 border-2 border-accent border-t-transparent rounded-full"></div>
-                  )}
-                  {!isValidating && isAvailable === true && (
-                    <span className="text-success text-lg">✓</span>
-                  )}
-                  {!isValidating && isAvailable === false && (
-                    <span className="text-error text-lg">✗</span>
-                  )}
-                </div>
-              </div>
-              <div className="text-xs text-neutral mt-1">
-                {strings.profile.usernameSetup.usernameRules}
-              </div>
-            </label>
+          <UsernameInput
+            value={username}
+            onChange={(value, valid) => {
+              setUsername(value);
+              setIsValid(valid || null);
+            }}
+            placeholder={strings.profile.usernameSetup.usernamePlaceholder}
+            userEmail={user?.email}
+            userFullName={user?.user_metadata?.full_name}
+            showSuggestions={true}
+          />
 
-            {/* Validation Messages */}
-            {validationError && (
-              <div className="text-error text-sm bg-red-50 p-3 rounded-lg border border-red-200 flex items-center gap-2">
-                <span>⚠️</span>
-                {validationError}
-              </div>
-            )}
-
-            {isAvailable === true && (
-              <div className="text-success text-sm bg-green-50 p-3 rounded-lg border border-green-200 flex items-center gap-2">
-                <span>🎉</span>
-                {strings.profile.usernameSetup.available}
-              </div>
-            )}
-          </div>
-
-          {/* Alternative Suggestions */}
-          {alternatives.length > 0 && (
-            <div className="space-y-3">
-              <h3 className="text-sm font-medium text-primary">{strings.profile.usernameSetup.suggestionsTitle}</h3>
-              <div className="flex flex-wrap gap-2">
-                {alternatives.slice(0, 6).map((alt, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleSelectAlternative(alt)}
-                    className="px-3 py-1 text-sm bg-light hover:bg-secondary hover:text-white rounded-full transition-colors border border-gray-200"
-                  >
-                    {alt}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* Action Buttons */}
           <div className="space-y-3 pt-4">
             <button
               onClick={handleSave}
-              disabled={!username || !isAvailable || isSaving}
+              disabled={!username || !isValid || isSaving}
               className="btn w-full text-center"
             >
               {isSaving ? (

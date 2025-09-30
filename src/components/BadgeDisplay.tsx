@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from 'react';
 import { strings, formatString } from '@/lib/strings';
+import BadgeModal from './BadgeModal';
 
 const BADGE_CONFIG = {
   emoji: "🤩",
@@ -13,14 +15,18 @@ interface BadgeDisplayProps {
   showTitle?: boolean;
   className?: string;
   userPosition?: number | null;
+  userName?: string;
 }
 
 export default function BadgeDisplay({ 
   size = 'medium', 
   showTitle = false,
   className = "",
-  userPosition
+  userPosition,
+  userName
 }: BadgeDisplayProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const sizeClasses = {
     small: 'text-xs px-2 py-1',
     medium: 'text-sm px-3 py-2',
@@ -32,22 +38,33 @@ export default function BadgeDisplay({
     medium: 'text-base',
     large: 'text-lg'
   };
-
-  const displayTitle = userPosition 
+  const displayTitle = userPosition !== null && userPosition !== undefined
     ? formatString(strings.badge.displayTitle, { position: userPosition })
     : strings.badge.displayTitle;
 
   return (
-    <div className={`inline-flex items-center gap-2 rounded-full font-semibold transition-all duration-300 hover:scale-105 ${sizeClasses[size]} bg-gradient-to-r ${BADGE_CONFIG.color} text-white shadow-md ${className}`}>
-      <span className={emojiSizes[size]}>
-        {BADGE_CONFIG.emoji}
-      </span>
-      {showTitle && (
-        <span className="hidden sm:inline whitespace-nowrap">
-          {displayTitle.split('nimabalo.uz')[0].trim()}
-        </span>
-      )}
-    </div>
+    <>
+      <button
+        onClick={() => setIsModalOpen(true)}
+        className={`card hover-lift transition-all duration-300 cursor-pointer ${sizeClasses[size]} bg-gradient-to-r ${BADGE_CONFIG.color} text-white shadow-md hover:shadow-lg rounded-2xl ${className}`}
+      >
+        <div className="flex items-center justify-center gap-2">
+          <span className={emojiSizes[size]}>
+            {BADGE_CONFIG.emoji}
+          </span>
+          <span className="font-bold text-lg">
+            #{userPosition}
+          </span>
+        </div>
+      </button>
+      
+      <BadgeModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        userPosition={userPosition}
+        userName={userName}
+      />
+    </>
   );
 }
 
@@ -73,9 +90,12 @@ export function BadgeList({
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold text-primary">{getTitle()}</h2>
+      <div className="flex items-center gap-3 mb-4">
+        <span className="text-2xl">🏅</span>
+        <h2 className="text-xl font-bold text-primary">{getTitle()}</h2>
+      </div>
       <div className="flex flex-wrap gap-3">
-        <BadgeDisplay size="medium" userPosition={userPosition} />
+        <BadgeDisplay size="medium" userPosition={userPosition} userName={profileName} />
       </div>
     </div>
   );

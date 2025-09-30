@@ -2,29 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
+import { strings } from '@/lib/strings';
 
-const surprises = [
-	{
-		title: "Syurpriz kerakmi?",
-		message: "Qiziquvchilarga javob topishda yordam bering, keyin his qilasiz!",
-		cta: { label: "Ketdik", href: "/auth" },
-	},
-	{
-		title: "Qiziqmi?",
-		message: "Har kuni bitta yangi narsani o'rgating. Birinchi bo'lib javob bering!",
-		cta: { label: "Boshla", href: "/auth" },
-	},
-	{
-		title: "Keling, kashf qilamiz!",
-		message: "O'zingizga xos javob ulashing, fikringizni dunyo eshitsin!",
-		cta: { label: "Qani", href: "/auth" },
-	},
-	{
-		title: "Bir oz sehr?",
-		message: "Odamlarga yordam berishga tayyormisiz?",
-		cta: { label: "Ko'raylikchi", href: "/auth" },
-	},
-];
+const surprises = strings.surprise.surprises.map(surprise => ({
+	...surprise,
+	cta: { label: surprise.cta, href: "/auth" }
+}));
 
 export default function SurpriseCTA() {
 	const [open, setOpen] = useState(false);
@@ -36,8 +19,8 @@ export default function SurpriseCTA() {
 	return (
 		<>
 			<button className="btn-secondary text-base sm:text-lg text-center px-4 py-2 sm:px-6 sm:py-3" onClick={() => setOpen(true)}>
-				<span className="hidden sm:inline">Savollarga javobingiz bormi?</span>
-				<span className="sm:hidden">Javob?</span>
+				<span className="hidden sm:inline">{strings.surpriseCTA.button}</span>
+				<span className="sm:hidden">{strings.surpriseCTA.buttonMobile}</span>
 			</button>
 			{open && mounted && createPortal(
 				<div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
@@ -48,7 +31,7 @@ export default function SurpriseCTA() {
 							<p className="text-sm sm:text-base text-neutral mb-6">{surprise.message}</p>
 							<div className="flex flex-col sm:flex-row items-center justify-center gap-3">
 								<a href={surprise.cta.href} className="btn w-full sm:w-auto px-6 py-3 text-base sm:text-lg">{surprise.cta.label}</a>
-								<button className="btn-secondary w-full sm:w-auto px-6 py-3 text-base sm:text-lg" onClick={() => setOpen(false)}>Keyinroq</button>
+								<button className="btn-secondary w-full sm:w-auto px-6 py-3 text-base sm:text-lg" onClick={() => setOpen(false)}>{strings.surpriseCTA.later}</button>
 							</div>
 							{/* playful confetti */}
 							<div className="pointer-events-none absolute inset-0 overflow-hidden">

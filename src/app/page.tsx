@@ -7,7 +7,7 @@ import { strings, formatString } from "@/lib/strings";
 import { queryWithTimeout, handleSupabaseError } from "@/lib/supabaseUtils";
 import IndependenceCongrats from "@/components/IndependenceCongrats";
 import SurpriseCTA from "@/components/SurpriseCTA";
-import LatestQuestions from "@/components/LatestQuestions";
+import AppSidebar from "@/components/AppSidebar";
 import SparkleEffect from "@/components/SparkleEffect";
 import ConfettiEffect from "@/components/ConfettiEffect";
 import AuthModal from "@/components/AuthModal";
@@ -285,30 +285,14 @@ export default function HomePage() {
         </div>
         
         {/* Right sidebar - hidden on mobile, visible on desktop */}
-        <div className="hidden lg:block fixed right-0 h-full w-80 px-4 pt-4 z-30 bg-white/95 shadow-2xl animate-fade-in-right">
-          <div className="h-full overflow-y-auto">
-            <LatestQuestions 
-              questions={questions} 
-              loading={loading} 
-              onQuestionsUpdate={setQuestions}
-              showAuthModal={showAuthModal}
-              setShowAuthModal={handleShowAuthModal}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile Latest Questions Section - shown below main content on mobile */}
-      <div className="lg:hidden px-4 pb-8">
-        <div className="max-w-xl mx-auto">
-          <LatestQuestions 
-            questions={questions} 
-            loading={loading} 
-            onQuestionsUpdate={setQuestions}
-            showAuthModal={showAuthModal}
-            setShowAuthModal={handleShowAuthModal}
-          />
-        </div>
+        <AppSidebar
+          variant="home"
+          questions={questions}
+          loading={loading}
+          onQuestionsUpdate={setQuestions}
+          showAuthModal={showAuthModal}
+          setShowAuthModal={handleShowAuthModal}
+        />
       </div>
 
       {/* Auth Modal for "Menga ham qiziq" button */}

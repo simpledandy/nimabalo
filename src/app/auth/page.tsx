@@ -21,6 +21,7 @@ export default function AuthPage() {
   const greeted = useRef(false);
   const [showUsernameSetup, setShowUsernameSetup] = useState(false);
   const [needsUsernameSetup, setNeedsUsernameSetup] = useState(false);
+  const [userName, setUserName] = useState<string>('');
 
   // Check if user needs username setup
   useEffect(() => {
@@ -33,7 +34,7 @@ export default function AuthPage() {
       while (retries < maxRetries) {
         const { data: profile, error } = await supabase
           .from('profiles')
-          .select('username')
+          .select('username, full_name')
           .eq('id', user.id)
           .single();
 
@@ -49,6 +50,9 @@ export default function AuthPage() {
           setShowUsernameSetup(true);
           return;
         }
+
+        // Set user name for badge modal
+        setUserName(profile.full_name || profile.username || 'User');
 
         // User has username, greet them
         if (!greeted.current) {
@@ -232,6 +236,7 @@ export default function AuthPage() {
             isOpen={!!newBadge}
             onClose={clearNewBadge}
             userPosition={userPosition}
+            userName={userName}
           />
         </div>
       </div>
@@ -351,6 +356,7 @@ export default function AuthPage() {
         isOpen={!!newBadge}
         onClose={clearNewBadge}
         userPosition={userPosition}
+        userName={userName}
       />
     </div>
   );

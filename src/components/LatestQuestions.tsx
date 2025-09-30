@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { useSession } from '@/lib/useSession';
 import { strings, formatString } from '@/lib/strings';
 import { queryWithTimeout, handleSupabaseError } from '@/lib/supabaseUtils';
+import { timeAgo } from '@/lib/timeUtils';
 
 type Question = {
   id: string;
@@ -27,13 +28,17 @@ export default function LatestQuestions({
   loading, 
   onQuestionsUpdate,
   showAuthModal,
-  setShowAuthModal
+  setShowAuthModal,
+  showClickableHeader = false,
+  stackedButtons = false
 }: { 
   questions: Question[]; 
   loading: boolean; 
   onQuestionsUpdate: (questions: Question[]) => void;
   showAuthModal: boolean;
   setShowAuthModal: (show: boolean) => void;
+  showClickableHeader?: boolean;
+  stackedButtons?: boolean;
 }) {
   const { user } = useSession();
   const [authors, setAuthors] = useState<Record<string, string>>({});
@@ -157,7 +162,17 @@ export default function LatestQuestions({
 
   return (
     <>
-      <div className="text-sm sm:text-base font-bold mb-4 pl-2 text-accent">{strings.latestQuestions.title}</div>
+      {showClickableHeader ? (
+        <Link 
+          href="/questions" 
+          className="text-sm sm:text-base font-bold mb-4 pl-2 text-accent hover:text-secondary transition-colors cursor-pointer flex items-center gap-2 group"
+        >
+          <span>{strings.latestQuestions.title}</span>
+          <span className="text-xs opacity-60 group-hover:opacity-100 transition-opacity">→</span>
+        </Link>
+      ) : (
+        <div className="text-sm sm:text-base font-bold mb-4 pl-2 text-accent">{strings.latestQuestions.title}</div>
+      )}
       <ul className="space-y-2">
         {loading && <li className="card text-xs sm:text-sm">{strings.latestQuestions.loading}</li>}
         {!loading && questions.length === 0 && <li className="card text-xs sm:text-sm">{strings.latestQuestions.noQuestions}</li>}
@@ -177,13 +192,16 @@ export default function LatestQuestions({
                     </Link>
                   ) : strings.latestQuestions.anonymousUser}
                 </span>
+                <span className="text-[9px] sm:text-[10px] text-neutral opacity-60">
+                  {timeAgo(q.created_at)}
+                </span>
               </div>
             </Link>
             <div className="mt-2 flex items-center justify-between">
               <span className="text-[9px] sm:text-[10px] text-neutral opacity-60">
                 {q.same_count ? formatString(strings.latestQuestions.sameCount, { count: q.same_count }) : ''}
               </span>
-              <div className="flex gap-1 sm:gap-2">
+              <div className={`${stackedButtons ? 'flex flex-col gap-1' : 'flex gap-1 sm:gap-2'}`}>
                 {/* Answer Button - Primary action */}
                 <Link 
                   href={`/q/${q.id}`}

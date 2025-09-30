@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import { strings } from '@/lib/strings';
 
 interface ShareQuestionButtonProps {
   questionTitle: string;
@@ -57,7 +58,7 @@ export default function ShareQuestionButton({ questionTitle, questionUrl }: Shar
         {isCopied ? '✅' : isLoading ? '⏳' : '📤'}
       </span>
       <span>
-        {isCopied ? 'Nusxalandi!' : isLoading ? 'Yuklanmoqda...' : 'Ulashish'}
+        {isCopied ? strings.ui.copied : isLoading ? strings.ui.loading : strings.ui.share}
       </span>
     </button>
   );

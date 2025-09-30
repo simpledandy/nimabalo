@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import { strings } from '@/lib/strings';
 
 interface AnswerPreviewProps {
   text: string;
@@ -31,7 +32,7 @@ export default function AnswerPreview({ text, maxLength = 300 }: AnswerPreviewPr
         <span className="animate-bounce-slow">
           {isExpanded ? '🔽' : '🔼'}
         </span>
-        <span>{isExpanded ? 'Kamroq ko\'rsatish' : 'Batafsil ko\'rish'}</span>
+        <span>{isExpanded ? strings.answerPreview.showLess : strings.answerPreview.showMore}</span>
       </button>
     </div>
   );

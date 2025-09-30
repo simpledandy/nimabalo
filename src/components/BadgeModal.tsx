@@ -8,6 +8,7 @@ interface BadgeModalProps {
   isOpen: boolean;
   onClose: () => void;
   userPosition?: number | null;
+  userName?: string;
 }
 
 const BADGE_CONFIG = {
@@ -19,7 +20,7 @@ const BADGE_CONFIG = {
   special: true
 };
 
-export default function BadgeModal({ isOpen, onClose, userPosition }: BadgeModalProps) {
+export default function BadgeModal({ isOpen, onClose, userPosition, userName }: BadgeModalProps) {
   const [position, setPosition] = useState<number | null>(userPosition || null);
 
   useEffect(() => {
@@ -40,7 +41,7 @@ export default function BadgeModal({ isOpen, onClose, userPosition }: BadgeModal
                 .from('profiles')
                 .select('*', { count: 'exact', head: true })
                 .lte('created_at', profile.created_at);
-              setPosition(count || 0);
+              setPosition((count || 1) - 1);
             }
           }
         } catch (error) {
@@ -83,27 +84,12 @@ export default function BadgeModal({ isOpen, onClose, userPosition }: BadgeModal
           
           {/* Badge title with brand name styling */}
           <h2 className={`relative z-10 text-2xl md:text-3xl font-extrabold mb-4 ${BADGE_CONFIG.textColor} leading-tight`}>
-            {(() => {
-              const title = position !== null 
-                ? formatString(strings.badge.title, { position: position })
-                : strings.badge.title;
-              
-              return title.split('nimabalo.uz').map((part, index, array) => (
-                <span key={index}>
-                  {part}
-                  {index < array.length - 1 && (
-                    <span className="font-black text-primary bg-clip-text bg-gradient-to-r from-primary to-secondary animate-glow">
-                      nimabalo.uz
-                    </span>
-                  )}
-                </span>
-              ));
-            })()}
+            {position !== null ? `${position}-Foydalanuvchi` : 'Foydalanuvchi'}
           </h2>
           
           {/* Badge description */}
           <p className={`relative z-10 text-base md:text-lg ${BADGE_CONFIG.textColor} mb-8 leading-relaxed opacity-90`}>
-            {strings.badge.description}
+            {userName || 'User'} nimabalo saytidan {position !== null ? position : 'n'}-chi bo'lib ro'yxatdan o'tdi!
           </p>
           
           {/* Action button */}

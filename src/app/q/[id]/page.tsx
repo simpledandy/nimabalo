@@ -9,6 +9,7 @@ import { strings } from '@/lib/strings';
 import SparkleEffect from '@/components/SparkleEffect';
 import ConfettiEffect from '@/components/ConfettiEffect';
 import QuestionSkeleton from '@/components/QuestionSkeleton';
+import NotFoundPage from '@/components/NotFoundPage';
 import ScrollToTopButton from '@/components/ScrollToTopButton';
 import QuestionCard from '@/components/QuestionCard';
 import AnswersList from '@/components/AnswersList';
@@ -78,11 +79,11 @@ export default function QuestionDetailPage() {
   
   if (!q) return (
     <div className="min-h-screen bg-gradient-to-b from-white to-sky-50 flex items-center justify-center px-4">
-      <div className="text-center">
-        <div className="text-4xl mb-4 animate-shake">😕</div>
-        <div className="text-xl font-medium text-error">{strings.errors.questionNotFound}</div>
-        <div className="text-sm text-neutral mt-2">{strings.errors.questionNotFoundMessage}</div>
-      </div>
+      <NotFoundPage
+        title={strings.errors.questionNotFound}
+        message={strings.errors.questionNotFoundMessage}
+        icon="😕"
+      />
     </div>
   );
 

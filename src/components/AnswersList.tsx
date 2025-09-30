@@ -72,7 +72,7 @@ export default function AnswersList({
         )}
         {sortAnimation && (
           <div className="absolute -top-2 -right-2 bg-success text-white px-2 py-1 rounded-full text-xs font-bold animate-bounce-slow z-10 shadow-lg">
-            🔄 Saralandi!
+            {strings.answerSorting.sorted}
           </div>
         )}
       </div>

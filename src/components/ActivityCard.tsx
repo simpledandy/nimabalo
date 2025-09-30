@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { timeAgo } from '@/lib/timeUtils';
+import { strings } from '@/lib/strings';
 
 type Activity = {
   id: string;
@@ -24,7 +25,7 @@ export default function ActivityCard({ activity, index }: ActivityCardProps) {
   };
 
   const getActivityLabel = () => {
-    return activity.type === 'question' ? 'Savol berildi' : 'Javob berildi';
+    return activity.type === 'question' ? strings.activity.questionPosted : strings.activity.answerPosted;
   };
 
   const getActivityTitle = () => {
@@ -65,7 +66,7 @@ export default function ActivityCard({ activity, index }: ActivityCardProps) {
             href={getActivityLink()}
             className="text-xs text-accent hover:text-secondary transition-colors"
           >
-            Ko'rish →
+            {strings.activity.view} →
           </Link>
         </div>
       </div>

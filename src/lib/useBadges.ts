@@ -38,7 +38,7 @@ export function useBadges() {
           .select('*', { count: 'exact', head: true })
           .lte('created_at', profile.created_at);
         
-        setUserPosition(count || 0);
+        setUserPosition((count || 1) - 1);
       }
 
       // Check if user has nth_user badge

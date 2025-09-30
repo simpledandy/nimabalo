@@ -35,7 +35,7 @@ export const strings = {
     tip: "💡 Maslahat: Savolingizni aniq va tushunarli yozing!",
     successMessage: "Savolingiz muvaffaqiyatli yuborildi! Javobni kutib turing! 🚀",
     errorMessages: {
-      emptyTitle: "Savol sarlavhasi bo'lishi mumkin emas.",
+      emptyTitle: "Savol sarlavhasiz bo'lishi mumkin emas.",
       duplicateQuestion: "Bu savol allaqachon so'ralgan. Iltimos, boshqa savol so'rang yoki mavjud savolni toping.",
       userNotFound: "Foydalanuvchi ma'lumotlari topilmadi. Iltimos, qayta tizimga kiring.",
       genericError: "Xatolik yuz berdi. Iltimos, qayta urinib ko'ring."
@@ -105,7 +105,6 @@ export const strings = {
     userProfile: "Foydalanuvchi Profili",
     editProfile: "Tahrirlash",
     profileInfo: "Profil ma'lumotlari",
-    editProfileTitle: "Profilni tahrirlash",
     stats: {
       questions: "Savollar",
       answers: "Javoblar", 
@@ -126,8 +125,7 @@ export const strings = {
     },
     messages: {
       saved: "Saqlandi!",
-      emailNotShown: "Email ko'rsatilmagan",
-      emailNotShownPublic: "Ko'rsatilmagan"
+      emailNotShown: "📧 Email ko'rsatilmagan"
     },
     usernameSetup: {
       title: "Iznom",
@@ -144,6 +142,46 @@ export const strings = {
       createProfile: "Profil yaratish",
       skipForNow: "Hozircha o'tkazib yuborish (keyinroq o'rnatishingiz mumkin)",
       tip: "Iznomingiz - bu sahifadagi shaxsiy ko'rinishingizga eltuvchi yo'l"
+    },
+    editProfilePage: {
+      title: "Profilni tahrirlash",
+      subtitle: "Ma'lumotlaringizni yangilang",
+      backToProfile: "Profilga qaytish",
+      sections: {
+        basicInfo: "Asosiy ma'lumotlar",
+        account: "Hisob ma'lumotlari"
+      },
+      fields: {
+        fullName: "To'liq ism",
+        fullNamePlaceholder: "Ismingizni kiriting",
+        username: "Iznom",
+        usernamePlaceholder: "Taxallusingizni kiriting",
+        email: "Email",
+        emailPlaceholder: "Email manzilingiz",
+        bio: "Bio",
+        bioPlaceholder: "O'zingiz haqingizda qisqacha yozing...",
+        location: "Manzil",
+        locationPlaceholder: "Yashayotgan joyingiz",
+        website: "Veb-sayt",
+        websitePlaceholder: "https://masalan.uz"
+      },
+      buttons: {
+        saveChanges: "O'zgarishlarni saqlash",
+        saving: "Saqlanmoqda...",
+        cancel: "Bekor qilish"
+      },
+      messages: {
+        saved: "Ma'lumotlar muvaffaqiyatli saqlandi!",
+        error: "Xatolik yuz berdi. Iltimos, qayta urinib ko'ring.",
+        usernameChanged: "Iznom o'zgartirildi! Yangi profil havolasi:",
+        unsavedChanges: "Saqlanmagan o'zgarishlar bor. Sahifani tark etmoqchimisiz?"
+      },
+      validation: {
+        fullNameRequired: "To'liq ism kiritilishi shart",
+        fullNameTooLong: "To'liq ism 100 belgidan ko'p bo'lmasligi kerak",
+        bioTooLong: "Bio 500 belgidan ko'p bo'lmasligi kerak",
+        websiteInvalid: "To'g'ri veb-sayt havolasini kiriting"
+      }
     }
   },
 
@@ -188,7 +226,7 @@ export const strings = {
   // Latest Questions
   latestQuestions: {
     title: "So'nggi savollar",
-    loading: "Yuklanmoqda…",
+    loading: "Yuklanmoqda...",
     noQuestions: "Hali savollar yo'q.",
     author: "Muallif:",
     sameCount: "{count} kishida ham qiziq",
@@ -302,6 +340,104 @@ export const strings = {
     weeksAgo: "{weeks} hafta oldin",
     monthsAgo: "{months} oy oldin",
     yearsAgo: "{years} yil oldin"
+  },
+
+  // Questions Feed Page
+  questionsFeed: {
+    title: "So'nggi savollar",
+    subtitle: "Hamma savollar va javoblar",
+    backToHome: "Bosh sahifa",
+    askQuestionCard: {
+      title: "Savol bering!",
+      description: "O'zingizning savolingizni bering va javob oling",
+      button: "Savol berish"
+    },
+    stats: {
+      title: "Statistika",
+      totalQuestions: "Jami savollar:",
+      today: "Bugun:"
+    },
+    tips: {
+      title: "Maslahat",
+      tips: [
+        "Aniq va tushunarli savollar bering",
+        "Boshqa foydalanuvchilarga javob bering",
+        "\"Menga ham qiziq\" tugmasini bosing"
+      ]
+    }
+  },
+
+  // User Profile Pages
+  userProfile: {
+    userNotFound: "Foydalanuvchi topilmadi",
+    userNotFoundMessage: "Ushbu foydalanuvchi mavjud emas yoki o'chirilgan.",
+    recentActivity: "So'nggi faoliyat",
+    loading: "Yuklanmoqda...",
+    noActivity: "Hozircha faoliyat yo'q",
+    noActivitySubtitle: "Bu foydalanuvchi hali hech qanday savol yoki javob yozmagan.",
+    genericError: "Xatolik yuz berdi. Iltimos, qayta urinib ko'ring."
+  },
+
+  // Activity Card
+  activity: {
+    questionPosted: "Savol berildi",
+    answerPosted: "Javob berildi",
+    view: "Ko'rish"
+  },
+
+  // Answer Components
+  answerPreview: {
+    showMore: "Batafsil ko'rish",
+    showLess: "Kamroq ko'rsatish"
+  },
+
+  // Answer Sorting
+  answerSorting: {
+    sortBy: "Saralash",
+    newest: "Eng yangi",
+    oldest: "Eng eski",
+    longest: "Eng uzun",
+    shortest: "Eng qisqa",
+    sorted: "🔄 Saralandi!"
+  },
+
+  // Confirmation Modal
+  confirmation: {
+    defaultTitle: "Tasdiqlash kerak",
+    defaultMessage: "Bu amalni bajarishni xohlaysizmi?",
+    defaultConfirm: "Ha, tasdiqlash",
+    defaultCancel: "Bekor qilish"
+  },
+
+  // Surprise CTA
+  surpriseCTA: {
+    button: "Savollarga javobingiz bormi?",
+    buttonMobile: "Javob?",
+    later: "Keyinroq"
+  },
+
+  // Common UI Elements
+  ui: {
+    user: "User",
+    username: "iznom",
+    loading: "Yuklanmoqda...",
+    kishigaHamQiziq: "kishiga ham qiziq",
+    copied: "Nusxalandi!",
+    share: "Ulashish"
+  },
+
+  // User Content List
+  userContentList: {
+    myQuestions: "Mening savollarim",
+    myAnswers: "Mening javoblarim",
+    userQuestions: "{name}ning savollari",
+    userAnswers: "{name}ning javoblari",
+    noQuestionsYet: "Hali savol berilmagan",
+    noAnswersYet: "Hali javob berilmagan",
+    userNoQuestionsYet: "{name} hali savol bermagan",
+    userNoAnswersYet: "{name} hali javob bermagan",
+    firstQuestionPrompt: "Birinchi savolingizni bering!",
+    firstAnswerPrompt: "Birinchi javobingizni yozing!"
   }
 } as const;
 

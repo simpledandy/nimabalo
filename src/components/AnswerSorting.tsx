@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import { strings } from '@/lib/strings';
 
 type SortOption = 'newest' | 'oldest' | 'longest' | 'shortest';
 
@@ -13,10 +14,10 @@ export default function AnswerSorting({ onSortChange, currentSort }: AnswerSorti
   const [isOpen, setIsOpen] = useState(false);
 
   const sortOptions = [
-    { value: 'newest', label: 'Eng yangi', icon: '🆕' },
-    { value: 'oldest', label: 'Eng eski', icon: '📅' },
-    { value: 'longest', label: 'Eng uzun', icon: '📝' },
-    { value: 'shortest', label: 'Eng qisqa', icon: '✂️' },
+    { value: 'newest', label: strings.answerSorting.newest, icon: '🆕' },
+    { value: 'oldest', label: strings.answerSorting.oldest, icon: '📅' },
+    { value: 'longest', label: strings.answerSorting.longest, icon: '📝' },
+    { value: 'shortest', label: strings.answerSorting.shortest, icon: '✂️' },
   ] as const;
 
   return (
@@ -26,7 +27,7 @@ export default function AnswerSorting({ onSortChange, currentSort }: AnswerSorti
         className="flex items-center gap-2 px-3 py-2 bg-light text-primary rounded-lg font-medium hover:bg-accent hover:text-white transition-all duration-300 hover:scale-105 relative z-[9999]"
       >
         <span className="animate-bounce-slow">🔀</span>
-        <span>Saralash</span>
+        <span>{strings.answerSorting.sortBy}</span>
         <span className={`transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>▼</span>
       </button>
 

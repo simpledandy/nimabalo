@@ -44,7 +44,7 @@ export default function NotificationModal({ isOpen, onClose }: NotificationModal
                     <div className="text-2xl">🏆</div>
                     <div className="flex-1">
                       <h3 className="font-bold text-primary text-sm">
-                        {userPosition 
+                        {userPosition !== null
                           ? formatString(strings.badge.title, { position: userPosition })
                           : strings.badge.title
                         }
