@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "bot": "node bot/index.js"
+    "bot": "node bot/index.js",
+    "setup-webhook": "node scripts/setup-webhook.js"
   },
   "dependencies": {
     "@supabase/auth-ui-react": "^0.4.7",

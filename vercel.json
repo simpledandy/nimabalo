@@ -1,0 +1,13 @@
+{
+  "functions": {
+    "api/bot.js": {
+      "runtime": "nodejs18.x"
+    }
+  },
+  "builds": [
+    {
+      "src": "api/bot.js",
+      "use": "@vercel/node"
+    }
+  ]
+}
