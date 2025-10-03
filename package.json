@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "bot": "node bot/index.js",
-    "setup-webhook": "node scripts/setup-webhook.js"
+    "check-db": "node scripts/check-database.js"
   },
   "dependencies": {
     "@supabase/auth-ui-react": "^0.4.7",
