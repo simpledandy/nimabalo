@@ -67,6 +67,8 @@ In your Vercel project, make sure you have:
 ## Step 5: Test the Deployment
 
 1. **Check Bot Status**: Your bot should start automatically on Render
+   - The bot will bind to the PORT environment variable (Render sets this automatically)
+   - You can check the health endpoint: `https://your-bot-url.onrender.com/health`
 2. **Test Bot**: Send `/start` to your bot
 3. **Test Authentication**: Click the "Nimabaloga kirish" button
 
@@ -76,6 +78,7 @@ In your Vercel project, make sure you have:
 - Check Render logs for errors
 - Verify `TELEGRAM_BOT_TOKEN` is set correctly
 - Ensure `DATABASE_URL` points to your Render database
+- Check that the service is binding to a port (should show "Telegram bot is running on port XXXX" in logs)
 
 ### Authentication Not Working
 - Verify `SITE_URL` points to your Vercel deployment
