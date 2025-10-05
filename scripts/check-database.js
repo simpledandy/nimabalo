@@ -51,6 +51,22 @@ async function checkTables() {
       
       console.log(`\n📊 Total tokens: ${tokens[0].count}`);
       
+      // Check feedback table
+      const { rows: feedbackExists } = await pool.query(`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_name = 'tg_user_feedback'
+        );
+      `);
+      
+      if (feedbackExists[0].exists) {
+        console.log('\n✅ tg_user_feedback table exists');
+        const { rows: feedbackCount } = await pool.query('SELECT COUNT(*) as count FROM tg_user_feedback');
+        console.log(`📊 Total feedback entries: ${feedbackCount[0].count}`);
+      } else {
+        console.log('\n❌ tg_user_feedback table does not exist');
+      }
+      
     } else {
       console.log('❌ tg_login_tokens table does not exist');
       console.log('\n🔧 Creating the table...');
