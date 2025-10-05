@@ -1,19 +1,11 @@
-'use client';
-
-import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
-import Link from 'next/link';
-import { supabase } from '@/lib/supabaseClient';
-import { useSession } from '@/lib/useSession';
+import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
 import { strings } from '@/lib/strings';
 import SparkleEffect from '@/components/SparkleEffect';
-import ConfettiEffect from '@/components/ConfettiEffect';
-import QuestionSkeleton from '@/components/QuestionSkeleton';
 import NotFoundPage from '@/components/NotFoundPage';
-import ScrollToTopButton from '@/components/ScrollToTopButton';
-import QuestionCard from '@/components/QuestionCard';
-import AnswersList from '@/components/AnswersList';
-import AnswerForm from '@/components/AnswerForm';
+import StructuredData from '@/components/StructuredData';
+import QuestionDetailClient from './QuestionDetailClient';
 
 type Question = { 
   id: string; 
@@ -31,68 +23,183 @@ type Answer = {
   user_id: string; 
 };
 
-export default function QuestionDetailPage() {
-  const params = useParams<{ id: string }>();
-  const id = params?.id as string;
-  const { user } = useSession();
+type Profile = {
+  id: string;
+  username: string | null;
+  full_name: string | null;
+  avatar_url: string | null;
+};
 
-  const [q, setQ] = useState<Question | null>(null);
-  const [answers, setAnswers] = useState<Answer[]>([]);
-  const [questionAuthor, setQuestionAuthor] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [showConfetti, setShowConfetti] = useState(false);
-  const [hoveredElement, setHoveredElement] = useState<string | null>(null);
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
 
+// Generate metadata for SEO
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { id } = await params;
+  
+  try {
+    // Check if environment variables are available
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.warn('Supabase environment variables not available during build, using fallback metadata');
+      return {
+        title: "Savol - Nimabalo",
+        description: "Nimabalo'da savollar va javoblar.",
+      };
+    }
 
-  useEffect(() => {
-    (async () => {
-      const [{ data: qData }, { data: aData }] = await Promise.all([
-        supabase.from('questions').select('*').eq('id', id).single(),
-        supabase.from('answers').select('*').eq('question_id', id).order('created_at', { ascending: false }),
-      ]);
-      if (qData) {
-        setQ(qData);
-        // Fetch question author info
-        if (qData.user_id) {
-          const { data: authorData } = await supabase
+    const supabase = getSupabaseAdmin();
+    const { data: question } = await supabase
+      .from('questions')
+      .select('title, body, created_at')
+      .eq('id', id)
+      .single();
+
+    if (!question) {
+      return {
+        title: "Savol topilmadi - Nimabalo",
+        description: "Bu savol mavjud emas yoki o'chirilgan.",
+      };
+    }
+
+    const title = `${question.title} - Nimabalo`;
+    const description = question.body 
+      ? `${question.body.substring(0, 160)}...` 
+      : `${question.title} haqida fikr almashing va javob bering.`;
+
+    return {
+      title,
+      description,
+      keywords: [
+        "savol",
+        "javob",
+        "nimabalo",
+        "q&a",
+        "uzbek",
+        question.title.toLowerCase(),
+      ],
+      openGraph: {
+        title,
+        description,
+        type: "article",
+        siteName: "Nimabalo",
+        url: `https://nimabalo.uz/q/${id}`,
+        publishedTime: question.created_at,
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+      },
+      alternates: {
+        canonical: `https://nimabalo.uz/q/${id}`,
+      },
+      robots: {
+        index: true,
+        follow: true,
+      },
+    };
+  } catch (error) {
+    console.error('Error generating metadata:', error);
+    return {
+      title: "Savol - Nimabalo",
+      description: "Nimabalo'da savollar va javoblar.",
+    };
+  }
+}
+
+// Server-side function to fetch question data
+async function getQuestionData(id: string) {
+  try {
+    // Check if environment variables are available
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.warn('Supabase environment variables not available during build, returning null data');
+      return {
+        question: null,
+        answers: [],
+        author: null,
+      };
+    }
+
+    const supabase = getSupabaseAdmin();
+    const [{ data: question }, { data: answers }, { data: author }] = await Promise.all([
+      supabase.from('questions').select('*').eq('id', id).single(),
+      supabase.from('answers').select('*').eq('question_id', id).order('created_at', { ascending: false }),
+      supabase.from('questions').select('user_id').eq('id', id).single().then(async (result) => {
+        if (result.data?.user_id) {
+          const { data } = await supabase
             .from('profiles')
             .select('*')
-            .eq('id', qData.user_id)
+            .eq('id', result.data.user_id)
             .single();
-          setQuestionAuthor(authorData);
+          return { data };
         }
-      }
-      if (aData) setAnswers(aData);
-      setLoading(false);
-    })();
-  }, [id]);
+        return { data: null };
+      })
+    ]);
 
-  const handleAnswerPosted = (newAnswers: Answer[]) => {
-    setAnswers(newAnswers);
-  };
+    return {
+      question: question as Question | null,
+      answers: (answers || []) as Answer[],
+      author: author?.data as Profile | null,
+    };
+  } catch (error) {
+    console.error('Error fetching question data:', error);
+    return {
+      question: null,
+      answers: [],
+      author: null,
+    };
+  }
+}
 
-  const handleShowConfetti = () => {
-    setShowConfetti(true);
-  };
+// Generate static params for popular questions (optional - for ISR)
+export async function generateStaticParams() {
+  try {
+    // Check if environment variables are available
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.warn('Supabase environment variables not available during build, returning empty static params');
+      return [];
+    }
 
-  if (loading) return <QuestionSkeleton />;
+    const supabase = getSupabaseAdmin();
+    const { data: questions } = await supabase
+      .from('questions')
+      .select('id')
+      .order('created_at', { ascending: false })
+      .limit(50); // Generate static pages for 50 most recent questions
+
+    return questions?.map((question) => ({
+      id: question.id,
+    })) || [];
+  } catch (error) {
+    console.error('Error generating static params:', error);
+    return [];
+  }
+}
+
+export default async function QuestionDetailPage({ params }: PageProps) {
+  const { id } = await params;
   
-  if (!q) return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-sky-50 flex items-center justify-center px-4">
-      <NotFoundPage
-        title={strings.errors.questionNotFound}
-        message={strings.errors.questionNotFoundMessage}
-        icon="😕"
-      />
-    </div>
-  );
+  const { question, answers, author } = await getQuestionData(id);
+
+  if (!question) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-white to-sky-50 flex items-center justify-center px-4">
+        <NotFoundPage
+          title={strings.errors.questionNotFound}
+          message={strings.errors.questionNotFoundMessage}
+          icon="😕"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-sky-50 relative overflow-hidden">
-      {/* Confetti celebration effect */}
-      <ConfettiEffect 
-        isActive={showConfetti} 
-        onComplete={() => setShowConfetti(false)} 
+      <StructuredData 
+        type="QAPage" 
+        data={{ question, answers, author }} 
       />
       
       {/* Sparkle effect for extra playfulness */}
@@ -106,49 +213,12 @@ export default function QuestionDetailPage() {
         <div className="absolute bottom-20 right-10 text-3xl opacity-10 animate-bounce-slow">💡</div>
       </div>
 
-      <div className="container mx-auto px-4 py-6 sm:py-8 pt-28 sm:pt-32 max-w-4xl">
-        {/* Back to Questions Button */}
-        <div className="mb-6 animate-fade-in-up">
-          <a 
-            href="/" 
-            className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-light text-primary rounded-full font-medium hover:bg-accent hover:text-white transition-all duration-300 hover:scale-105 text-sm sm:text-base"
-          >
-            <span className="text-lg animate-bounce-slow">←</span>
-            <span className="hidden sm:inline">{strings.question.backToQuestions}</span>
-            <span className="sm:hidden">{strings.question.backToQuestionsMobile}</span>
-          </a>
-        </div>
-        
-        <div className="space-y-6 animate-fade-in-up">
-          {/* Question Card */}
-          <QuestionCard
-            question={q}
-            questionAuthor={questionAuthor}
-            hoveredElement={hoveredElement}
-            onMouseEnter={setHoveredElement}
-            onMouseLeave={() => setHoveredElement(null)}
-          />
-
-          {/* Answers Section */}
-          <AnswersList
-            answers={answers}
-            hoveredElement={hoveredElement}
-            onMouseEnter={setHoveredElement}
-            onMouseLeave={() => setHoveredElement(null)}
-          />
-
-          {/* Answer Form */}
-          <AnswerForm
-            user={user}
-            questionId={id}
-            onAnswerPosted={handleAnswerPosted}
-            onShowConfetti={handleShowConfetti}
-          />
-        </div>
-      </div>
-      
-      {/* Scroll to top button */}
-      <ScrollToTopButton />
+      <QuestionDetailClient 
+        question={question}
+        initialAnswers={answers}
+        questionAuthor={author}
+        questionId={id}
+      />
     </div>
   );
 }

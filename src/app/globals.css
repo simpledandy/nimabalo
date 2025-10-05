@@ -128,6 +128,32 @@ html, body {
   transform: translateY(0);
 }
 
+/* Telegram Button */
+.btn-telegram {
+  @apply inline-flex items-center gap-2 rounded-full px-6 py-3 text-base font-semibold transition-all duration-200;
+  background: linear-gradient(135deg, #229ED9 0%, #127FB7 100%);
+  color: var(--color-white);
+  box-shadow: var(--shadow-md);
+  border: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-telegram::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+  transition: left 0.5s;
+}
+
+.btn-telegram:hover::before { left: 100%; }
+.btn-telegram:hover { transform: translateY(-1px); box-shadow: var(--shadow-lg); filter: brightness(1.05); }
+.btn-telegram:active { transform: translateY(0); }
+
 /* Input System */
 .input {
   @apply w-full rounded-xl px-4 py-3 transition-all duration-200;

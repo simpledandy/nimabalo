@@ -22,6 +22,45 @@ export default function AuthPage() {
   const [showUsernameSetup, setShowUsernameSetup] = useState(false);
   const [needsUsernameSetup, setNeedsUsernameSetup] = useState(false);
   const [userName, setUserName] = useState<string>('');
+  const tgBotUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME;
+
+  // Telegram: consume session tokens and set Supabase session
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const accessToken = params.get('access_token');
+    const refreshToken = params.get('refresh_token');
+    const tgEmail = params.get('tg_email');
+    const tgPw = params.get('tg_pw');
+    if (!accessToken || !refreshToken) return;
+
+    (async () => {
+      const { error } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      });
+      if (error) {
+        addToast(strings.auth.validationErrors.genericError, 'error');
+      }
+      // Clean URL to avoid reprocessing
+      window.history.replaceState({}, document.title, window.location.pathname);
+    })();
+  }, [addToast]);
+
+  // Telegram: fallback flow via email/password if provided
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tgEmail = params.get('tg_email');
+    const tgPw = params.get('tg_pw');
+    if (!tgEmail || !tgPw) return;
+
+    (async () => {
+      const { error } = await supabase.auth.signInWithPassword({ email: tgEmail, password: tgPw });
+      if (error) {
+        addToast(strings.auth.validationErrors.genericError, 'error');
+      }
+      window.history.replaceState({}, document.title, window.location.pathname);
+    })();
+  }, [addToast]);
 
   // Check if user needs username setup
   useEffect(() => {
@@ -272,7 +311,42 @@ export default function AuthPage() {
               {strings.auth.loginSubtitle}
             </p>
           </div>
-          
+
+          {/* Telegram CTA - prominent */}
+          <div className="mb-6">
+            <div className="card glass-surface hover-lift animate-fade-in" style={{ padding: '1rem' }}>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="text-2xl">📨</div>
+                <div>
+                  <div className="text-sm text-warm font-semibold uppercase tracking-wide">{strings.auth.telegram.recommended}</div>
+                  <div className="text-lg font-semibold text-primary">{strings.auth.telegram.ctaTitle}</div>
+                  <div className="text-sm text-neutral">{strings.auth.telegram.ctaSubtitle}</div>
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                {tgBotUsername ? (
+                  <a
+                    href={`https://t.me/${tgBotUsername}?start=login`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-telegram w-full sm:w-auto text-center"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M22 2L11 13"></path>
+                      <path d="M22 2L15 22L11 13L2 9L22 2Z"></path>
+                    </svg>
+                    {strings.auth.telegram.button}
+                  </a>
+                ) : (
+                  <button type="button" disabled className="btn-telegram w-full sm:w-auto opacity-60 cursor-not-allowed">
+                    {strings.auth.telegram.comingSoon}
+                  </button>
+                )}
+                <div className="text-xs text-neutral text-center sm:text-left">{strings.auth.telegram.orContinue}</div>
+              </div>
+            </div>
+          </div>
+
           <Auth
             supabaseClient={supabase}
             onlyThirdPartyProviders={false}

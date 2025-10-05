@@ -53,6 +53,14 @@ export const strings = {
     askQuestion: "Savol bering",
     tip: "💡 Hisob yaratish bepul va faqat bir necha soniya!",
     errorPrefix: "Xatolik:",
+    telegram: {
+      recommended: "Tavsiya etiladi",
+      ctaTitle: "Telegram bilan tezroq kiring",
+      ctaSubtitle: "Nimabalo Telegram botidan foydalanib bir necha soniyada kirish",
+      button: "Telegram bilan kirish",
+      orContinue: "yoki davom eting",
+      comingSoon: "Telegram orqali kirish tez orada yoqiladi"
+    },
     formLabels: {
       email: "Elektron pochta",
       password: "Parol",

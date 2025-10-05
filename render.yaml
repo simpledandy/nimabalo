@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: nimabalo-bot
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm run bot
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: SITE_URL
+        sync: false
