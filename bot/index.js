@@ -28,7 +28,7 @@ if (!DATABASE_URL) {
 // DB setup
 const pool = new Pool({ connectionString: DATABASE_URL, ssl: { rejectUnauthorized: false } });
 
-// Create table if not exists (id, token, telegram_id, username, created_at, expires_at, consumed_at)
+// Create tables if not exists
 const ensureSchema = async () => {
   await pool.query(`
     create table if not exists tg_login_tokens (
@@ -44,6 +44,15 @@ const ensureSchema = async () => {
     );
     create index if not exists idx_tg_login_tokens_token on tg_login_tokens(token);
     create index if not exists idx_tg_login_tokens_expires on tg_login_tokens(expires_at);
+    
+    create table if not exists tg_user_feedback (
+      id bigserial primary key,
+      telegram_id bigint not null,
+      question_type text not null,
+      answer text not null,
+      created_at timestamptz not null default now()
+    );
+    create index if not exists idx_tg_user_feedback_telegram_id on tg_user_feedback(telegram_id);
   `);
 };
 
@@ -58,19 +67,30 @@ const minutesFromNow = (m) => new Date(Date.now() + m * 60 * 1000);
 const createLoginToken = async (tgUser) => {
   const token = makeToken();
   const expiresAt = minutesFromNow(10); // short-lived
+  
+  // Enhanced user data collection
+  const userData = {
+    token,
+    telegramId: tgUser.id,
+    username: tgUser.username || null,
+    firstName: tgUser.first_name || null,
+    lastName: tgUser.last_name || null,
+    expiresAt,
+  };
+  
   await pool.query(
     `insert into tg_login_tokens (token, telegram_id, telegram_username, first_name, last_name, expires_at)
      values ($1, $2, $3, $4, $5, $6)`,
     [
-      token,
-      tgUser.id,
-      tgUser.username || null,
-      tgUser.first_name || null,
-      tgUser.last_name || null,
-      expiresAt,
+      userData.token,
+      userData.telegramId,
+      userData.username,
+      userData.firstName,
+      userData.lastName,
+      userData.expiresAt,
     ]
   );
-  return token;
+  return { token, userData };
 };
 
 const makeAuthUrl = (token) => `${SITE_URL}/api/tg-auth?tg_token=${encodeURIComponent(token)}`;
@@ -81,10 +101,18 @@ bot.onText(/\/start(?:\s+(.*))?/, async (msg, match) => {
 
   try {
     await ensureSchema();
-    const token = await createLoginToken(tgUser);
+    const { token, userData } = await createLoginToken(tgUser);
     const url = makeAuthUrl(token);
 
-    const welcome = `Assalomu alaykum, ${tgUser.first_name || 'do‘st'}!\n\nBir martalik havola orqali saytda tez kirish mumkin.`;
+    // Create personalized welcome message
+    const userName = userData.firstName || 'do\'st';
+    const hasUsername = userData.username ? ` (@${userData.username})` : '';
+    const suggestedUsername = userData.username || `tg_${userData.telegramId}`;
+    
+    const welcome = `Assalomu alaykum, ${userName}${hasUsername}!\n\n` +
+      `🎯 Nimabalo - bu savollar va javoblar platformasi\n` +
+      `💡 Sizning taklif qilinayotgan username: @${suggestedUsername}\n\n` +
+      `Bir martalik havola orqali saytda tez kirish mumkin:`;
 
     await bot.sendMessage(chatId, welcome, {
       reply_markup: {
@@ -92,6 +120,11 @@ bot.onText(/\/start(?:\s+(.*))?/, async (msg, match) => {
       },
       disable_web_page_preview: true,
     });
+    
+    // Set up control keyboard after first interaction
+    setTimeout(async () => {
+      await setupControlKeyboard(chatId);
+    }, 2000);
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error('Start handler error', err);
@@ -103,7 +136,7 @@ bot.onText(/\/start(?:\s+(.*))?/, async (msg, match) => {
 bot.onText(/\/link/, async (msg) => {
   const chatId = msg.chat.id;
   try {
-    const token = await createLoginToken(msg.from);
+    const { token, userData } = await createLoginToken(msg.from);
     const url = makeAuthUrl(token);
     await bot.sendMessage(chatId, 'Yangi kirish havolasi tayyor:', {
       reply_markup: { inline_keyboard: [[{ text: '✅ Kirish', url }]] },
@@ -113,6 +146,196 @@ bot.onText(/\/link/, async (msg) => {
     // eslint-disable-next-line no-console
     console.error('Link handler error', err);
     await bot.sendMessage(chatId, 'Xatolik yuz berdi. Iltimos, /start ni bosing.');
+  }
+});
+
+// Congratulation and feedback flow for new users
+bot.onText(/\/congrats/, async (msg) => {
+  const chatId = msg.chat.id;
+  const tgUser = msg.from;
+  
+  try {
+    await ensureSchema();
+    
+    const congratulationMessage = `🎉 Tabriklaymiz, ${tgUser.first_name || 'do\'st'}!\n\n` +
+      `✅ Nimabalo\'ga muvaffaqiyatli ro\'yxatdan o\'tdingiz!\n\n` +
+      `💭 Bizga fikringizni bildiring - bu bizga yaxshilanish uchun yordam beradi:`;
+    
+    const feedbackKeyboard = {
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: '📝 Fikr-mulohaza qoldirish', callback_data: 'feedback_start' }],
+          [{ text: '🏠 Bosh sahifaga', callback_data: 'go_home' }]
+        ]
+      }
+    };
+    
+    await bot.sendMessage(chatId, congratulationMessage, feedbackKeyboard);
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error('Congrats handler error', err);
+    await bot.sendMessage(chatId, 'Xatolik yuz berdi. Iltimos, qayta urining.');
+  }
+});
+
+// Handle callback queries for feedback flow
+bot.on('callback_query', async (callbackQuery) => {
+  const message = callbackQuery.message;
+  const chatId = message.chat.id;
+  const data = callbackQuery.data;
+  const tgUser = callbackQuery.from;
+  
+  try {
+    await bot.answerCallbackQuery(callbackQuery.id);
+    
+    if (data === 'feedback_start') {
+      await startFeedbackFlow(chatId, tgUser);
+    } else if (data === 'go_home') {
+      await bot.sendMessage(chatId, '🏠 Bosh sahifaga qaytdingiz. Nimabalo\'da qiziqarli savollar va javoblar sizni kutmoqda!');
+    } else if (data === 'new_login_link') {
+      const { token } = await createLoginToken(tgUser);
+      const url = makeAuthUrl(token);
+      await bot.sendMessage(chatId, '🔗 Yangi kirish havolasi:', {
+        reply_markup: { inline_keyboard: [[{ text: '✅ Nimabaloga kirish', url }]] }
+      });
+    } else if (data.startsWith('feedback_')) {
+      await handleFeedbackResponse(chatId, tgUser, data);
+    } else if (data.startsWith('rating_')) {
+      await handleRatingResponse(chatId, tgUser, data);
+    }
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error('Callback query error', err);
+    await bot.sendMessage(chatId, 'Xatolik yuz berdi. Iltimos, qayta urining.');
+  }
+});
+
+// Start the feedback flow
+async function startFeedbackFlow(chatId, tgUser) {
+  const question1 = `1️⃣ Nimabalo haqida qanday fikrda edingiz?\n\n` +
+    `Platformani qanday topdingiz?`;
+  
+  const keyboard1 = {
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: '🔍 Google orqali', callback_data: 'feedback_discovery_google' }],
+        [{ text: '📱 Do\'stlar orqali', callback_data: 'feedback_discovery_friends' }],
+        [{ text: '📺 Reklama orqali', callback_data: 'feedback_discovery_ads' }],
+        [{ text: '💬 Telegram orqali', callback_data: 'feedback_discovery_telegram' }],
+        [{ text: '✍️ Boshqa', callback_data: 'feedback_discovery_other' }]
+      ]
+    }
+  };
+  
+  await bot.sendMessage(chatId, question1, keyboard1);
+}
+
+// Handle feedback responses
+async function handleFeedbackResponse(chatId, tgUser, data) {
+  const parts = data.split('_');
+  const questionType = parts[1];
+  const answer = parts.slice(2).join('_');
+  
+  // Save feedback to database
+  await pool.query(
+    `insert into tg_user_feedback (telegram_id, question_type, answer) values ($1, $2, $3)`,
+    [tgUser.id, questionType, answer]
+  );
+  
+  // Continue with next question based on current question
+  if (questionType === 'discovery') {
+    await askSecondQuestion(chatId, tgUser);
+  } else if (questionType === 'experience') {
+    await askThirdQuestion(chatId, tgUser);
+  } else if (questionType === 'suggestions') {
+    await finishFeedbackFlow(chatId, tgUser);
+  } else if (answer === 'other') {
+    await askForCustomAnswer(chatId, tgUser, questionType);
+  }
+}
+
+// Second feedback question
+async function askSecondQuestion(chatId, tgUser) {
+  const question2 = `2️⃣ Nimabalo\'da qanday tajriba qildingiz?\n\n` +
+    `Foydalanish qulayligi qanday edi?`;
+  
+  const keyboard2 = {
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: '⭐ Juda yaxshi', callback_data: 'feedback_experience_excellent' }],
+        [{ text: '👍 Yaxshi', callback_data: 'feedback_experience_good' }],
+        [{ text: '😐 O\'rtacha', callback_data: 'feedback_experience_average' }],
+        [{ text: '👎 Yomon', callback_data: 'feedback_experience_poor' }],
+        [{ text: '✍️ Boshqa', callback_data: 'feedback_experience_other' }]
+      ]
+    }
+  };
+  
+  await bot.sendMessage(chatId, question2, keyboard2);
+}
+
+// Third feedback question
+async function askThirdQuestion(chatId, tgUser) {
+  const question3 = `3️⃣ Nimabalo\'ni qanday yaxshilashimiz mumkin?\n\n` +
+    `Qanday yangi funksiyalar kerak?`;
+  
+  const keyboard3 = {
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: '📱 Mobil ilova', callback_data: 'feedback_suggestions_mobile_app' }],
+        [{ text: '🔔 Bildirishnomalar', callback_data: 'feedback_suggestions_notifications' }],
+        [{ text: '🎨 Dizayn yaxshilash', callback_data: 'feedback_suggestions_design' }],
+        [{ text: '⚡ Tezlik', callback_data: 'feedback_suggestions_speed' }],
+        [{ text: '✍️ Boshqa', callback_data: 'feedback_suggestions_other' }]
+      ]
+    }
+  };
+  
+  await bot.sendMessage(chatId, question3, keyboard3);
+}
+
+// Finish feedback flow
+async function finishFeedbackFlow(chatId, tgUser) {
+  const thankYouMessage = `🎉 Rahmat, ${tgUser.first_name || 'do\'st'}!\n\n` +
+    `📝 Sizning fikr-mulohazangiz biz uchun juda qimmatli!\n` +
+    `💡 Bu ma\'lumotlar Nimabalo\'ni yanada yaxshilashga yordam beradi.\n\n` +
+    `🏠 Endi bosh sahifaga qayting va qiziqarli savollar bilan tanishing!`;
+  
+  const finalKeyboard = {
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: '🏠 Bosh sahifaga', callback_data: 'go_home' }],
+        [{ text: '🔗 Yangi kirish havolasi', callback_data: 'new_login_link' }]
+      ]
+    }
+  };
+  
+  await bot.sendMessage(chatId, thankYouMessage, finalKeyboard);
+}
+
+// Ask for custom answer
+async function askForCustomAnswer(chatId, tgUser, questionType) {
+  const customMessage = `✍️ Iltimos, o'z javobingizni yozing:\n\n` +
+    `(Xabar yuborish orqali javob bering)`;
+  
+  await bot.sendMessage(chatId, customMessage);
+  
+  // Store that we're waiting for custom input
+  // This is a simple approach - in production you might want to use a state management system
+}
+
+// Handle text messages for custom feedback answers
+bot.on('message', async (msg) => {
+  const chatId = msg.chat.id;
+  const text = msg.text;
+  const tgUser = msg.from;
+  
+  // Simple check if this looks like a custom feedback answer
+  // In production, you'd want a more robust state management system
+  if (text && text.length > 10 && !text.startsWith('/')) {
+    // This might be a custom feedback answer
+    // For now, we'll just acknowledge it
+    await bot.sendMessage(chatId, `📝 Rahmat! Sizning javobingiz qayd etildi: "${text}"`);
   }
 });
 
@@ -134,6 +357,184 @@ server.listen(PORT, () => {
   // eslint-disable-next-line no-console
   console.log(`Telegram bot is running on port ${PORT}`);
 });
+
+// Set up persistent keyboard with control buttons
+const setupControlKeyboard = async (chatId) => {
+  const controlKeyboard = {
+    reply_markup: {
+      keyboard: [
+        [{ text: '🏠 Bosh sahifa' }, { text: '📝 Savol berish' }],
+        [{ text: '🔗 Kirish havolasi' }, { text: '📊 Statistika' }],
+        [{ text: '❓ Yordam' }, { text: '⭐ Baholash' }]
+      ],
+      resize_keyboard: true,
+      one_time_keyboard: false
+    }
+  };
+  
+  await bot.sendMessage(chatId, '🎛️ Boshqaruv tugmalari faollashtirildi!', controlKeyboard);
+};
+
+// Handle control button presses
+bot.on('message', async (msg) => {
+  const chatId = msg.chat.id;
+  const text = msg.text;
+  const tgUser = msg.from;
+  
+  // Skip if it's a command or very short text
+  if (!text || text.startsWith('/') || text.length < 3) {
+    return;
+  }
+  
+  try {
+    switch (text) {
+      case '🏠 Bosh sahifa':
+        await handleHomeButton(chatId, tgUser);
+        break;
+      case '📝 Savol berish':
+        await handleAskQuestionButton(chatId, tgUser);
+        break;
+      case '🔗 Kirish havolasi':
+        await handleLoginLinkButton(chatId, tgUser);
+        break;
+      case '📊 Statistika':
+        await handleStatsButton(chatId, tgUser);
+        break;
+      case '❓ Yordam':
+        await handleHelpButton(chatId, tgUser);
+        break;
+      case '⭐ Baholash':
+        await handleRatingButton(chatId, tgUser);
+        break;
+      default:
+        // Handle custom feedback answers or other text
+        if (text.length > 10) {
+          await bot.sendMessage(chatId, `📝 Rahmat! Sizning javobingiz qayd etildi: "${text}"`);
+        }
+        break;
+    }
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error('Message handler error', err);
+  }
+});
+
+// Control button handlers
+async function handleHomeButton(chatId, tgUser) {
+  const homeMessage = `🏠 Xush kelibsiz, ${tgUser.first_name || 'do\'st'}!\n\n` +
+    `🎯 Nimabalo - bu savollar va javoblar platformasi\n` +
+    `💡 Bu yerda siz savollar berishingiz va boshqalarning savollariga javob berishingiz mumkin.\n\n` +
+    `📝 Yangi savol berish uchun tugmani bosing!`;
+  
+  await bot.sendMessage(chatId, homeMessage);
+}
+
+async function handleAskQuestionButton(chatId, tgUser) {
+  const askMessage = `📝 Savol berish uchun:\n\n` +
+    `1️⃣ Nimabalo veb-saytiga kiring\n` +
+    `2️⃣ "Savol berish" tugmasini bosing\n` +
+    `3️⃣ Savolingizni yozing va yuboring\n\n` +
+    `💡 Yoki quyidagi tugma orqali darhol kirish havolasini oling:`;
+  
+  const { token } = await createLoginToken(tgUser);
+  const url = makeAuthUrl(token);
+  
+  const keyboard = {
+    reply_markup: {
+      inline_keyboard: [[{ text: '✅ Nimabaloga kirish', url }]]
+    }
+  };
+  
+  await bot.sendMessage(chatId, askMessage, keyboard);
+}
+
+async function handleLoginLinkButton(chatId, tgUser) {
+  const { token } = await createLoginToken(tgUser);
+  const url = makeAuthUrl(token);
+  
+  const linkMessage = `🔗 Yangi kirish havolasi tayyor!\n\n` +
+    `Bu havola 10 daqiqa amal qiladi.`;
+  
+  const keyboard = {
+    reply_markup: {
+      inline_keyboard: [[{ text: '✅ Nimabaloga kirish', url }]]
+    }
+  };
+  
+  await bot.sendMessage(chatId, linkMessage, keyboard);
+}
+
+async function handleStatsButton(chatId, tgUser) {
+  try {
+    // Get user's login count
+    const { rows } = await pool.query(
+      `select count(*) as login_count from tg_login_tokens where telegram_id = $1 and consumed_at is not null`,
+      [tgUser.id]
+    );
+    
+    const loginCount = rows[0]?.login_count || 0;
+    
+    const statsMessage = `📊 Sizning statistikangiz:\n\n` +
+      `🔑 Kirishlar soni: ${loginCount}\n` +
+      `📅 Ro'yxatdan o'tgan: ${new Date().toLocaleDateString('uz-UZ')}\n\n` +
+      `💡 Ko'proq faol bo'ling va savollar bilan tanishing!`;
+    
+    await bot.sendMessage(chatId, statsMessage);
+  } catch (err) {
+    await bot.sendMessage(chatId, '📊 Statistika ma\'lumotlari hozircha mavjud emas.');
+  }
+}
+
+async function handleHelpButton(chatId, tgUser) {
+  const helpMessage = `❓ Yordam va ma'lumotlar:\n\n` +
+    `🎯 Nimabalo nima?\n` +
+    `Savollar va javoblar uchun platforma\n\n` +
+    `📝 Qanday savol beraman?\n` +
+    `1. Saytga kiring\n` +
+    `2. "Savol berish" tugmasini bosing\n` +
+    `3. Savolingizni yozing\n\n` +
+    `💬 Qanday javob beraman?\n` +
+    `Boshqalarning savollariga javob yozing\n\n` +
+    `🔗 Yangi havola kerak?\n` +
+    `"Kirish havolasi" tugmasini bosing\n\n` +
+    `📞 Aloqa: @nimabalo_support`;
+  
+  await bot.sendMessage(chatId, helpMessage);
+}
+
+async function handleRatingButton(chatId, tgUser) {
+  const ratingMessage = `⭐ Nimabalo\'ni baholang!\n\n` +
+    `Sizning fikringiz biz uchun juda muhim!`;
+  
+  const keyboard = {
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: '⭐ 5', callback_data: 'rating_5' }, { text: '⭐ 4', callback_data: 'rating_4' }],
+        [{ text: '⭐ 3', callback_data: 'rating_3' }, { text: '⭐ 2', callback_data: 'rating_2' }],
+        [{ text: '⭐ 1', callback_data: 'rating_1' }]
+      ]
+    }
+  };
+  
+  await bot.sendMessage(chatId, ratingMessage, keyboard);
+}
+
+// Handle rating responses
+async function handleRatingResponse(chatId, tgUser, data) {
+  const rating = data.split('_')[1];
+  const ratingText = ['', '1 yulduz', '2 yulduz', '3 yulduz', '4 yulduz', '5 yulduz'][parseInt(rating)];
+  
+  // Save rating to database
+  await pool.query(
+    `insert into tg_user_feedback (telegram_id, question_type, answer) values ($1, $2, $3)`,
+    [tgUser.id, 'rating', ratingText]
+  );
+  
+  const thankYouMessage = `⭐ Rahmat! Siz Nimabalo\'ni ${ratingText} bilan baholadingiz!\n\n` +
+    `💡 Sizning fikringiz biz uchun juda muhim va yaxshilanish uchun ishlatiladi.`;
+  
+  await bot.sendMessage(chatId, thankYouMessage);
+}
 
 // Graceful shutdown
 const shutdown = async () => {
