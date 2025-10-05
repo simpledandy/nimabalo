@@ -116,13 +116,39 @@ bot.onText(/\/link/, async (msg) => {
   }
 });
 
+// Create a simple HTTP server for Render (required for web services)
+const http = require('http');
+
+const server = http.createServer((req, res) => {
+  if (req.url === '/health') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ status: 'ok', bot: 'running' }));
+  } else {
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.end('Nimabalo Telegram Bot is running');
+  }
+});
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  // eslint-disable-next-line no-console
+  console.log(`Telegram bot is running on port ${PORT}`);
+});
+
 // Graceful shutdown
 const shutdown = async () => {
   try {
     await bot.stopPolling();
     await pool.end();
-  } finally {
-    process.exit(0);
+    server.close(() => {
+      // eslint-disable-next-line no-console
+      console.log('Server closed');
+      process.exit(0);
+    });
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error('Error during shutdown:', err);
+    process.exit(1);
   }
 };
 
@@ -130,6 +156,6 @@ process.on('SIGINT', shutdown);
 process.on('SIGTERM', shutdown);
 
 // eslint-disable-next-line no-console
-console.log('Telegram bot is running.');
+console.log('Telegram bot is starting...');
 
 
