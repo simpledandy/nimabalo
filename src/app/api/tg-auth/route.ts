@@ -20,17 +20,26 @@ export async function GET(req: NextRequest) {
   }
 
   try {
+    // eslint-disable-next-line no-console
+    console.log('Processing telegram auth for token:', tgToken.substring(0, 8) + '...');
+    
     // 1) Validate token
     const { rows } = await pool.query(
       `select * from tg_login_tokens where token = $1 and consumed_at is null and expires_at > now() limit 1`,
       [tgToken]
     );
     if (!rows.length) {
+      // eslint-disable-next-line no-console
+      console.log('Token not found or expired');
       return NextResponse.redirect(`${siteUrl}/auth?error=token_expired`);
     }
     const tokenRow = rows[0];
+    // eslint-disable-next-line no-console
+    console.log('Token validated for telegram_id:', tokenRow.telegram_id);
 
     const admin = getSupabaseAdmin();
+    // eslint-disable-next-line no-console
+    console.log('Supabase admin client initialized');
 
     // 2) Find or create a user: we will use a synthetic email based on telegram id
     const telegramId = String(tokenRow.telegram_id);
@@ -39,35 +48,51 @@ export async function GET(req: NextRequest) {
     // Ensure user exists (find or create)
     let userId: string | null = null;
 
-    // Try create first
-    const { data: created, error: createErr } = await admin.auth.admin.createUser({
-      email,
-      email_confirm: true,
-      user_metadata: {
-        auth_provider: 'telegram',
-        telegram_id: telegramId,
-        telegram_username: tokenRow.telegram_username || null,
-        first_name: tokenRow.first_name || null,
-        last_name: tokenRow.last_name || null,
-      },
-    });
+    // First, try to find existing user by email
+    try {
+      const { data: usersPage, error: listErr } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+      if (!listErr && usersPage?.users) {
+        const found = usersPage.users.find(u => (u.email || '').toLowerCase() === email.toLowerCase());
+        if (found) {
+          userId = found.id;
+          // eslint-disable-next-line no-console
+          console.log('Found existing user:', found.id);
+        }
+      }
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('Error finding user:', err);
+    }
 
-    if (created?.user) {
-      userId = created.user.id;
-    } else if (createErr && typeof createErr.message === 'string' && createErr.message.toLowerCase().includes('already registered')) {
-      // Fallback: find by email by paging listUsers
-      for (let page = 1; page <= 5 && !userId; page++) {
-        const { data: usersPage, error: listErr } = await admin.auth.admin.listUsers({ page, perPage: 200 });
-        if (listErr) break;
-        const found = usersPage?.users?.find(u => (u.email || '').toLowerCase() === email.toLowerCase());
-        if (found) userId = found.id;
-        if (!usersPage?.users?.length) break;
+    // If user not found, create new user
+    if (!userId) {
+      try {
+        const { data: created, error: createErr } = await admin.auth.admin.createUser({
+          email,
+          email_confirm: true,
+          user_metadata: {
+            auth_provider: 'telegram',
+            telegram_id: telegramId,
+            telegram_username: tokenRow.telegram_username || null,
+            first_name: tokenRow.first_name || null,
+            last_name: tokenRow.last_name || null,
+          },
+        });
+
+        if (created?.user) {
+          userId = created.user.id;
+          // eslint-disable-next-line no-console
+          console.log('Created new user:', created.user.id);
+        } else if (createErr) {
+          // eslint-disable-next-line no-console
+          console.error('Error creating user:', createErr);
+          return NextResponse.redirect(`${siteUrl}/auth?error=create_user_failed`);
+        }
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('Error in user creation:', err);
+        return NextResponse.redirect(`${siteUrl}/auth?error=create_user_failed`);
       }
-      if (!userId) {
-        return NextResponse.redirect(`${siteUrl}/auth?error=no_user_found`);
-      }
-    } else if (createErr) {
-      return NextResponse.redirect(`${siteUrl}/auth?error=create_user_failed`);
     }
 
     if (!userId) {
@@ -90,6 +115,8 @@ export async function GET(req: NextRequest) {
     const p = encodeURIComponent(oneTimePassword);
     return NextResponse.redirect(`${siteUrl}/auth?tg_email=${e}&tg_pw=${p}`);
   } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error('Unexpected error in tg-auth:', err);
     return NextResponse.redirect(`${siteUrl}/auth?error=unexpected`);
   }
 }
