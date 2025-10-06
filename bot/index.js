@@ -260,6 +260,15 @@ bot.onText(/\/start(?:\s+(.*))?/, async (msg, match) => {
   try {
     await ErrorHandler.handleWithRetry(async () => {
       await ensureSchema();
+      
+      // Check if user already has an account
+      const { rows: existingTokens } = await pool.query(
+        `select count(*) as login_count from tg_login_tokens where telegram_id = $1 and consumed_at is not null`,
+        [tgUser.id]
+      );
+      
+      const isExistingUser = parseInt(existingTokens[0]?.login_count || 0) > 0;
+      
       const { token, userData } = await createLoginToken(tgUser);
       const url = makeAuthUrl(token);
 
@@ -269,10 +278,18 @@ bot.onText(/\/start(?:\s+(.*))?/, async (msg, match) => {
       // Use Telegram username if available, otherwise use Telegram ID
       const suggestedUsername = userData.username ? userData.username : `tg_${userData.telegramId}`;
       
-      const welcome = `Assalomu alaykum, ${userName}${hasUsername}!\n\n` +
-        `🎯 Nimabalo - bu savollar va javoblar platformasi\n` +
-        `💡 Sizning taklif qilinayotgan username: @${suggestedUsername}\n\n` +
-        `Bir martalik havola orqali saytda tez kirish mumkin:`;
+      let welcome;
+      if (isExistingUser) {
+        welcome = `Xush kelibsiz, ${userName}${hasUsername}!\n\n` +
+          `🎯 Nimabalo'ga qaytganingizdan xursandmiz!\n` +
+          `📊 Sizning statistikangiz: ${existingTokens[0].login_count} marta kirish\n\n` +
+          `🔗 Yangi kirish havolasi tayyor:`;
+      } else {
+        welcome = `Assalomu alaykum, ${userName}${hasUsername}!\n\n` +
+          `🎯 Nimabalo - bu savollar va javoblar platformasi\n` +
+          `💡 Sizning taklif qilinayotgan username: @${suggestedUsername}\n\n` +
+          `Bir martalik havola orqali saytda tez kirish mumkin:`;
+      }
 
       await bot.sendMessage(chatId, welcome, {
         reply_markup: {
@@ -363,6 +380,24 @@ bot.on('callback_query', async (callbackQuery) => {
       await handleFeedbackResponse(chatId, tgUser, data);
     } else if (data.startsWith('rating_')) {
       await handleRatingResponse(chatId, tgUser, data);
+    } else if (data.startsWith('feedback_type_')) {
+      await handleFeedbackTypeSelection(chatId, tgUser, data);
+    } else if (data.startsWith('admin_')) {
+      // Check if user is admin
+      if (String(tgUser.id) !== String(ADMIN_TELEGRAM_ID)) {
+        await bot.sendMessage(chatId, '❌ Bu funksiya faqat admin uchun.');
+        return;
+      }
+      
+      if (data === 'admin_feedback') {
+        await handleAdminFeedback(chatId);
+      } else if (data === 'admin_help') {
+        await handleAdminHelp(chatId);
+      } else if (data === 'admin_stats') {
+        await handleAdminStats(chatId);
+      } else if (data === 'admin_broadcast') {
+        await handleAdminBroadcast(chatId);
+      }
     }
   } catch (err) {
     // eslint-disable-next-line no-console
@@ -536,6 +571,25 @@ const setupControlKeyboard = async (chatId) => {
   await bot.sendMessage(chatId, '🎛️ Boshqaruv tugmalari faollashtirildi!', controlKeyboard);
 };
 
+// Admin commands
+bot.onText(/\/admin/, async (msg) => {
+  const chatId = msg.chat.id;
+  const tgUser = msg.from;
+  
+  // Check if user is admin
+  if (String(tgUser.id) !== String(ADMIN_TELEGRAM_ID)) {
+    await bot.sendMessage(chatId, '❌ Bu buyruq faqat admin uchun.');
+    return;
+  }
+  
+  try {
+    await handleAdminDashboard(chatId);
+  } catch (err) {
+    console.error('Admin dashboard error:', err);
+    await bot.sendMessage(chatId, '❌ Admin panelida xatolik yuz berdi.');
+  }
+});
+
 // Handle control button presses
 bot.on('message', async (msg) => {
   const chatId = msg.chat.id;
@@ -599,7 +653,19 @@ async function handleFeedbackButton(chatId, tgUser) {
     `• Qanday yangi funksiyalar kerak?\n\n` +
     `💡 Xabaringizni yozing va yuboring. Barcha fikr-mulohazalar admin\'ga yuboriladi.`;
   
-  await bot.sendMessage(chatId, feedbackMessage);
+  const feedbackKeyboard = {
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: '🐛 Xatolik haqida', callback_data: 'feedback_type_bug' }],
+        [{ text: '💡 Taklif', callback_data: 'feedback_type_suggestion' }],
+        [{ text: '❓ Savol', callback_data: 'feedback_type_question' }],
+        [{ text: '⭐ Baholash', callback_data: 'feedback_type_rating' }],
+        [{ text: '✍️ Boshqa', callback_data: 'feedback_type_other' }]
+      ]
+    }
+  };
+  
+  await bot.sendMessage(chatId, feedbackMessage, feedbackKeyboard);
 }
 
 async function handleFeedbackMessage(chatId, tgUser, messageText) {
@@ -714,6 +780,172 @@ async function handleRatingResponse(chatId, tgUser, data) {
     `💡 Sizning fikringiz biz uchun juda muhim va yaxshilanish uchun ishlatiladi.`;
   
   await bot.sendMessage(chatId, thankYouMessage);
+}
+
+// Admin dashboard
+async function handleAdminDashboard(chatId) {
+  try {
+    // Get feedback statistics
+    const { rows: feedbackStats } = await pool.query(`
+      select 
+        count(*) as total_feedback,
+        count(case when forwarded_to_admin = true then 1 end) as forwarded_feedback,
+        count(case when created_at > now() - interval '24 hours' then 1 end) as recent_feedback
+      from tg_feedback_messages
+    `);
+    
+    const { rows: userStats } = await pool.query(`
+      select 
+        count(distinct telegram_id) as total_users,
+        count(case when created_at > now() - interval '24 hours' then 1 end) as recent_logins
+      from tg_login_tokens
+    `);
+    
+    const stats = feedbackStats[0];
+    const users = userStats[0];
+    
+    const dashboardMessage = `🔧 **Admin Dashboard**\n\n` +
+      `📊 **Statistika:**\n` +
+      `• Jami foydalanuvchilar: ${users.total_users}\n` +
+      `• So'nggi 24 soatda kirishlar: ${users.recent_logins}\n` +
+      `• Jami fikr-mulohazalar: ${stats.total_feedback}\n` +
+      `• Admin'ga yuborilgan: ${stats.forwarded_feedback}\n` +
+      `• So'nggi 24 soatda: ${stats.recent_feedback}\n\n` +
+      `🎛️ **Boshqaruv:**`;
+    
+    const adminKeyboard = {
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: '📝 Fikr-mulohazalar', callback_data: 'admin_feedback' }],
+          [{ text: '❓ Yordam so\'rovlari', callback_data: 'admin_help' }],
+          [{ text: '📊 Batafsil statistika', callback_data: 'admin_stats' }],
+          [{ text: '📢 Xabar yuborish', callback_data: 'admin_broadcast' }]
+        ]
+      }
+    };
+    
+    await bot.sendMessage(chatId, dashboardMessage, adminKeyboard);
+  } catch (err) {
+    console.error('Admin dashboard error:', err);
+    await bot.sendMessage(chatId, '❌ Statistika yuklanmadi.');
+  }
+}
+
+// Admin feedback handler
+async function handleAdminFeedback(chatId) {
+  try {
+    const { rows: feedbacks } = await pool.query(`
+      select 
+        fm.id,
+        fm.telegram_id,
+        fm.message_text,
+        fm.message_type,
+        fm.forwarded_to_admin,
+        fm.created_at,
+        fm.admin_message_id
+      from tg_feedback_messages fm
+      order by fm.created_at desc
+      limit 10
+    `);
+    
+    if (feedbacks.length === 0) {
+      await bot.sendMessage(chatId, '📝 Hozircha fikr-mulohaza yo\'q.');
+      return;
+    }
+    
+    let feedbackMessage = '📝 **So\'nggi fikr-mulohazalar:**\n\n';
+    
+    feedbacks.forEach((feedback, index) => {
+      const date = new Date(feedback.created_at).toLocaleString('uz-UZ');
+      const status = feedback.forwarded_to_admin ? '✅' : '⏳';
+      
+      feedbackMessage += `${index + 1}. ${status} **${feedback.message_type}**\n` +
+        `👤 ID: ${feedback.telegram_id}\n` +
+        `📅 ${date}\n` +
+        `💬 ${feedback.message_text.substring(0, 100)}${feedback.message_text.length > 100 ? '...' : ''}\n\n`;
+    });
+    
+    const keyboard = {
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: '🔄 Yangilash', callback_data: 'admin_feedback' }],
+          [{ text: '📊 Batafsil', callback_data: 'admin_feedback_detailed' }],
+          [{ text: '🔙 Orqaga', callback_data: 'admin_back' }]
+        ]
+      }
+    };
+    
+    await bot.sendMessage(chatId, feedbackMessage, keyboard);
+  } catch (err) {
+    console.error('Admin feedback error:', err);
+    await bot.sendMessage(chatId, '❌ Fikr-mulohazalar yuklanmadi.');
+  }
+}
+
+// Admin help handler
+async function handleAdminHelp(chatId) {
+  await bot.sendMessage(chatId, '❓ Yordam so\'rovlari tizimi hali ishlab chiqilmoqda. Tez orada qo\'shiladi!');
+}
+
+// Admin stats handler
+async function handleAdminStats(chatId) {
+  try {
+    const { rows: detailedStats } = await pool.query(`
+      select 
+        date_trunc('day', created_at) as day,
+        count(*) as daily_feedback,
+        count(case when forwarded_to_admin = true then 1 end) as daily_forwarded
+      from tg_feedback_messages
+      where created_at > now() - interval '7 days'
+      group by date_trunc('day', created_at)
+      order by day desc
+    `);
+    
+    let statsMessage = '📊 **Batafsil statistika (7 kun):**\n\n';
+    
+    detailedStats.forEach(stat => {
+      const date = new Date(stat.day).toLocaleDateString('uz-UZ');
+      statsMessage += `📅 ${date}: ${stat.daily_feedback} fikr (${stat.daily_forwarded} yuborilgan)\n`;
+    });
+    
+    const keyboard = {
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: '🔙 Orqaga', callback_data: 'admin_back' }]
+        ]
+      }
+    };
+    
+    await bot.sendMessage(chatId, statsMessage, keyboard);
+  } catch (err) {
+    console.error('Admin stats error:', err);
+    await bot.sendMessage(chatId, '❌ Statistika yuklanmadi.');
+  }
+}
+
+// Admin broadcast handler
+async function handleAdminBroadcast(chatId) {
+  await bot.sendMessage(chatId, '📢 Xabar yuborish tizimi hali ishlab chiqilmoqda. Tez orada qo\'shiladi!');
+}
+
+// Handle feedback type selection
+async function handleFeedbackTypeSelection(chatId, tgUser, data) {
+  const feedbackType = data.replace('feedback_type_', '');
+  
+  const typeMessages = {
+    'bug': '🐛 **Xatolik haqida:**\n\nIltimos, qanday xatolik yuz berganini batafsil yozing:\n• Qayerda?\n• Qachon?\n• Qanday?\n\nXabaringizni yuboring:',
+    'suggestion': '💡 **Taklif:**\n\nNimabalo\'ni qanday yaxshilashimiz mumkin?\n• Yangi funksiyalar\n• Dizayn o\'zgarishlari\n• Boshqa takliflar\n\nXabaringizni yuboring:',
+    'question': '❓ **Savol:**\n\nNimabalo haqida savolingiz bormi?\n• Qanday foydalanish?\n• Funksiyalar haqida\n• Boshqa savollar\n\nSavolingizni yuboring:',
+    'rating': '⭐ **Baholash:**\n\nNimabalo\'ni qanday baholaysiz?\n• Umumiy tajriba\n• Foydalanish qulayligi\n• Dizayn\n\nFikringizni yuboring:',
+    'other': '✍️ **Boshqa:**\n\nBoshqa fikr-mulohazangiz bormi?\n\nXabaringizni yuboring:'
+  };
+  
+  const message = typeMessages[feedbackType] || 'Fikringizni yuboring:';
+  
+  await bot.sendMessage(chatId, message);
+  
+  // Store the feedback type for the user (in a real implementation, you'd use a state management system)
+  // For now, we'll just acknowledge the selection
 }
 
 // Graceful shutdown
