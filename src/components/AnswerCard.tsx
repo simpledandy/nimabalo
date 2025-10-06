@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { strings } from '@/lib/strings';
 import { timeAgo } from '@/lib/timeUtils';
 import AnswerPreview from './AnswerPreview';
+import AnswerActions from './AnswerActions';
 
 type Answer = { 
   id: string; 
@@ -27,6 +28,9 @@ interface AnswerCardProps {
   hoveredElement: string | null;
   onMouseEnter: (elementId: string) => void;
   onMouseLeave: () => void;
+  currentUserId?: string;
+  onAnswerUpdated?: (updatedAnswer: Answer) => void;
+  onAnswerDeleted?: (answerId: string) => void;
 }
 
 export default function AnswerCard({ 
@@ -35,7 +39,10 @@ export default function AnswerCard({
   sortBy, 
   hoveredElement, 
   onMouseEnter, 
-  onMouseLeave 
+  onMouseLeave,
+  currentUserId,
+  onAnswerUpdated,
+  onAnswerDeleted
 }: AnswerCardProps) {
   const [authorProfile, setAuthorProfile] = useState<Profile | null>(null);
   const [loadingAuthor, setLoadingAuthor] = useState(true);
@@ -115,6 +122,15 @@ export default function AnswerCard({
                 {getAuthorDisplayName()}
               </Link>
             </div>
+            {/* Edit/Delete Actions */}
+            {currentUserId && onAnswerUpdated && onAnswerDeleted && (
+              <AnswerActions
+                answer={answer}
+                currentUserId={currentUserId}
+                onAnswerUpdated={onAnswerUpdated}
+                onAnswerDeleted={onAnswerDeleted}
+              />
+            )}
           </div>
         </div>
       </div>

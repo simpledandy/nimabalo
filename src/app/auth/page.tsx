@@ -154,16 +154,44 @@ export default function AuthPage() {
     const urlParams = new URLSearchParams(window.location.search);
     const error = urlParams.get('error');
     const errorDescription = urlParams.get('error_description');
+    const message = urlParams.get('message');
     
-    if (error && errorDescription) {
-      const decodedError = decodeURIComponent(errorDescription);
-      const translatedError = translateAuthError({ message: decodedError });
-      addToast(translatedError, "error");
+    if (error) {
+      let errorMessage = '';
+      
+      if (message) {
+        // Use the specific message if provided
+        errorMessage = decodeURIComponent(message);
+      } else if (errorDescription) {
+        // Fall back to error description
+        const decodedError = decodeURIComponent(errorDescription);
+        errorMessage = translateAuthError({ message: decodedError });
+      } else {
+        // Use error code to determine message
+        errorMessage = getErrorMessageByCode(error);
+      }
+      
+      addToast(errorMessage, "error");
       
       // Clean up URL
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, [addToast]);
+
+  // Function to get error message by error code
+  const getErrorMessageByCode = (errorCode: string): string => {
+    const errorMessages: Record<string, string> = {
+      'invalid_token': 'Noto\'g\'ri yoki yo\'qolgan kirish havolasi',
+      'token_expired': 'Kirish havolasi muddati tugagan. Yangi havola oling',
+      'server_config': 'Server sozlamalarida muammo',
+      'create_user_failed': 'Foydalanuvchi yaratishda muammo',
+      'no_user': 'Foydalanuvchi topilmadi',
+      'pw_set_failed': 'Parol o\'rnatishda muammo',
+      'unexpected': 'Kutilmagan xatolik yuz berdi'
+    };
+    
+    return errorMessages[errorCode] || 'Noma\'lum xatolik yuz berdi';
+  };
 
   // Listen for auth state changes and handle errors
   useEffect(() => {

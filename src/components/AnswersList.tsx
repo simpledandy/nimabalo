@@ -17,13 +17,19 @@ interface AnswersListProps {
   hoveredElement: string | null;
   onMouseEnter: (elementId: string) => void;
   onMouseLeave: () => void;
+  currentUserId?: string;
+  onAnswerUpdated?: (updatedAnswer: Answer) => void;
+  onAnswerDeleted?: (answerId: string) => void;
 }
 
 export default function AnswersList({ 
   answers, 
   hoveredElement, 
   onMouseEnter, 
-  onMouseLeave 
+  onMouseLeave,
+  currentUserId,
+  onAnswerUpdated,
+  onAnswerDeleted
 }: AnswersListProps) {
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'longest' | 'shortest'>('newest');
   const [sortAnimation, setSortAnimation] = useState(false);
@@ -108,6 +114,9 @@ export default function AnswersList({
               hoveredElement={hoveredElement}
               onMouseEnter={onMouseEnter}
               onMouseLeave={onMouseLeave}
+              currentUserId={currentUserId}
+              onAnswerUpdated={onAnswerUpdated}
+              onAnswerDeleted={onAnswerDeleted}
             />
           ))}
         </div>

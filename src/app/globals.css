@@ -395,6 +395,7 @@ html, body {
 .text-accent { color: var(--color-accent); }
 .text-warm { color: var(--color-warm); }
 .text-neutral { color: var(--color-neutral); }
+.text-error { color: var(--color-error); }
 
 .bg-primary { background-color: var(--color-primary); }
 .bg-secondary { background-color: var(--color-secondary); }
@@ -405,6 +406,7 @@ html, body {
 .border-primary { border-color: var(--color-primary); }
 .border-secondary { border-color: var(--color-secondary); }
 .border-accent { border-color: var(--color-accent); }
+.border-error { border-color: var(--color-error); }
 
 /* Professional icon button styling */
 .icon-btn {

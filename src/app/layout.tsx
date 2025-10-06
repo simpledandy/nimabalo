@@ -50,8 +50,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta property="og:title" content="Nimabalo" />
         <meta property="og:description" content="Savollaringizga javob toping" />
         <meta property="og:image" content="/logo.svg" />
-        <meta property="og:url" content="https://nimabalo.com/" />
+        <meta property="og:url" content="https://nimabalo.uz/" />
         <meta name="twitter:card" content="summary_large_image" />
+        {/* Google Search Console verification - Uncomment and add your verification code */}
+        <meta name="google-site-verification" content="j5Lw5f1rbcLiwar3-5KOphlKjESosNJ6SO2cw4dTpMQ" />
       </head>
       <body>
         <ClientRoot>{children}</ClientRoot>

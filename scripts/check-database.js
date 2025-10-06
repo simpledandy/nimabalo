@@ -51,7 +51,7 @@ async function checkTables() {
       
       console.log(`\n📊 Total tokens: ${tokens[0].count}`);
       
-      // Check feedback table
+      // Check feedback tables
       const { rows: feedbackExists } = await pool.query(`
         SELECT EXISTS (
           SELECT FROM information_schema.tables 
@@ -65,6 +65,25 @@ async function checkTables() {
         console.log(`📊 Total feedback entries: ${feedbackCount[0].count}`);
       } else {
         console.log('\n❌ tg_user_feedback table does not exist');
+      }
+
+      // Check feedback messages table
+      const { rows: feedbackMessagesExists } = await pool.query(`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_name = 'tg_feedback_messages'
+        );
+      `);
+      
+      if (feedbackMessagesExists[0].exists) {
+        console.log('\n✅ tg_feedback_messages table exists');
+        const { rows: feedbackMessagesCount } = await pool.query('SELECT COUNT(*) as count FROM tg_feedback_messages');
+        console.log(`📊 Total feedback messages: ${feedbackMessagesCount[0].count}`);
+        
+        const { rows: forwardedCount } = await pool.query('SELECT COUNT(*) as count FROM tg_feedback_messages WHERE forwarded_to_admin = true');
+        console.log(`📤 Forwarded to admin: ${forwardedCount[0].count}`);
+      } else {
+        console.log('\n❌ tg_feedback_messages table does not exist');
       }
       
     } else {

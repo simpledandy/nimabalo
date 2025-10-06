@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { strings } from '@/lib/strings';
 import { timeAgo } from '@/lib/timeUtils';
+import QuestionActions from './QuestionActions';
 
 type Question = { 
   id: string; 
@@ -25,6 +26,9 @@ interface QuestionCardProps {
   hoveredElement: string | null;
   onMouseEnter: (elementId: string) => void;
   onMouseLeave: () => void;
+  currentUserId?: string;
+  onQuestionUpdated?: (updatedQuestion: Question) => void;
+  onQuestionDeleted?: (questionId: string) => void;
 }
 
 export default function QuestionCard({ 
@@ -32,7 +36,10 @@ export default function QuestionCard({
   questionAuthor, 
   hoveredElement, 
   onMouseEnter, 
-  onMouseLeave 
+  onMouseLeave,
+  currentUserId,
+  onQuestionUpdated,
+  onQuestionDeleted
 }: QuestionCardProps) {
   return (
     <div 
@@ -55,17 +62,28 @@ export default function QuestionCard({
             <span className="animate-pulse">📅</span>
             <span>{strings.question.askedTime} {timeAgo(question.created_at)}</span>
           </div>
-          {questionAuthor && (
-            <div className="flex items-center gap-2">
-              <span className="animate-pulse">👤</span>
-              <Link 
-                href={questionAuthor.username ? `/${questionAuthor.username}` : `/user/${question.user_id}`}
-                className="text-accent hover:text-secondary transition-colors font-medium"
-              >
-                {questionAuthor.full_name || questionAuthor.username || strings.profile.userProfile}
-              </Link>
-            </div>
-          )}
+          <div className="flex items-center gap-3">
+            {questionAuthor && (
+              <div className="flex items-center gap-2">
+                <span className="animate-pulse">👤</span>
+                <Link 
+                  href={questionAuthor.username ? `/${questionAuthor.username}` : `/user/${question.user_id}`}
+                  className="text-accent hover:text-secondary transition-colors font-medium"
+                >
+                  {questionAuthor.full_name || questionAuthor.username || strings.profile.userProfile}
+                </Link>
+              </div>
+            )}
+            {/* Edit/Delete Actions */}
+            {currentUserId && onQuestionUpdated && onQuestionDeleted && (
+              <QuestionActions
+                question={question}
+                currentUserId={currentUserId}
+                onQuestionUpdated={onQuestionUpdated}
+                onQuestionDeleted={onQuestionDeleted}
+              />
+            )}
+          </div>
         </div>
         
         {/* Action Buttons */}

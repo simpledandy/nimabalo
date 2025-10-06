@@ -54,6 +54,7 @@ In your Render service, add these environment variables:
 
 ### Optional Variables:
 - `NODE_ENV` - Set to `production`
+- `ADMIN_TELEGRAM_ID` - Your Telegram user ID for receiving feedback notifications (e.g., `123456789`)
 
 ## Step 4: Update Vercel Environment Variables
 
@@ -97,6 +98,7 @@ TELEGRAM_BOT_TOKEN=your_bot_token
 DATABASE_URL=your_render_postgres_url
 SITE_URL=https://your-vercel-app.vercel.app
 NODE_ENV=production
+ADMIN_TELEGRAM_ID=123456789
 ```
 
 ### Vercel (Web App):

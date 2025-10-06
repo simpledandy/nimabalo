@@ -84,5 +84,3 @@ export default function IndependenceCongrats() {
    .animate-bounce-slower{ animation: bounce 2.6s infinite; }
    .animate-bounce-slowest{ animation: bounce 3s infinite; }
 */
-
-

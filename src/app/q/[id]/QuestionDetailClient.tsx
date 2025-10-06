@@ -47,6 +47,7 @@ export default function QuestionDetailClient({
   questionId 
 }: QuestionDetailClientProps) {
   const { user } = useSession();
+  const [currentQuestion, setCurrentQuestion] = useState<Question>(question);
   const [answers, setAnswers] = useState<Answer[]>(initialAnswers);
   const [showConfetti, setShowConfetti] = useState(false);
   const [hoveredElement, setHoveredElement] = useState<string | null>(null);
@@ -57,6 +58,29 @@ export default function QuestionDetailClient({
 
   const handleShowConfetti = () => {
     setShowConfetti(true);
+  };
+
+  const handleQuestionUpdated = (updatedQuestion: Question) => {
+    setCurrentQuestion(updatedQuestion);
+  };
+
+  const handleQuestionDeleted = () => {
+    // Redirect to home page when question is deleted
+    window.location.href = '/';
+  };
+
+  const handleAnswerUpdated = (updatedAnswer: Answer) => {
+    setAnswers(prevAnswers => 
+      prevAnswers.map(answer => 
+        answer.id === updatedAnswer.id ? updatedAnswer : answer
+      )
+    );
+  };
+
+  const handleAnswerDeleted = (deletedAnswerId: string) => {
+    setAnswers(prevAnswers => 
+      prevAnswers.filter(answer => answer.id !== deletedAnswerId)
+    );
   };
 
   return (
@@ -83,11 +107,14 @@ export default function QuestionDetailClient({
         <div className="space-y-6 animate-fade-in-up">
           {/* Question Card */}
           <QuestionCard
-            question={question}
+            question={currentQuestion}
             questionAuthor={questionAuthor}
             hoveredElement={hoveredElement}
             onMouseEnter={setHoveredElement}
             onMouseLeave={() => setHoveredElement(null)}
+            currentUserId={user?.id}
+            onQuestionUpdated={handleQuestionUpdated}
+            onQuestionDeleted={handleQuestionDeleted}
           />
 
           {/* Answers Section */}
@@ -96,6 +123,9 @@ export default function QuestionDetailClient({
             hoveredElement={hoveredElement}
             onMouseEnter={setHoveredElement}
             onMouseLeave={() => setHoveredElement(null)}
+            currentUserId={user?.id}
+            onAnswerUpdated={handleAnswerUpdated}
+            onAnswerDeleted={handleAnswerDeleted}
           />
 
           {/* Answer Form */}

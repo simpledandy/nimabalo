@@ -228,6 +228,38 @@ export const strings = {
     errors: {
       answerTooShort: "Javob juda qisqa.",
       answerSubmitError: "Javobni yuborishda xatolik yuz berdi"
+    },
+    actions: {
+      edit: "Tahrirlash",
+      delete: "O'chirish",
+      editQuestion: "Savolni tahrirlash",
+      deleteQuestion: "Savolni o'chirish",
+      editAnswer: "Javobni tahrirlash", 
+      deleteAnswer: "Javobni o'chirish",
+      saving: "Saqlanmoqda...",
+      deleting: "O'chirilmoqda...",
+      saveChanges: "O'zgarishlarni saqlash",
+      cancel: "Bekor qilish"
+    },
+    editModal: {
+      questionTitle: "Savolni tahrirlash",
+      questionTitlePlaceholder: "Savol sarlavhasini yozing...",
+      questionBodyPlaceholder: "Savol matnini yozing...",
+      answerBodyPlaceholder: "Javob matnini yozing...",
+      titleRequired: "Savol sarlavhasi kiritilishi shart",
+      bodyRequired: "Matn kiritilishi shart",
+      titleTooShort: "Savol sarlavhasi juda qisqa",
+      bodyTooShort: "Matn juda qisqa",
+      updateSuccess: "Muvaffaqiyatli yangilandi!",
+      updateError: "Yangilashda xatolik yuz berdi"
+    },
+    deleteConfirm: {
+      questionTitle: "Savolni o'chirish",
+      questionMessage: "Haqiqatan ham bu savolni o'chirmoqchimisiz? Bu amal qaytarib bo'lmaydi.",
+      answerTitle: "Javobni o'chirish", 
+      answerMessage: "Haqiqatan ham bu javobni o'chirmoqchimisiz? Bu amal qaytarib bo'lmaydi.",
+      confirmDelete: "Ha, o'chirish",
+      cancelDelete: "Bekor qilish"
     }
   },
 

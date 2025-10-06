@@ -14,3 +14,5 @@ services:
         sync: false
       - key: SITE_URL
         sync: false
+      - key: ADMIN_TELEGRAM_ID
+        sync: false
