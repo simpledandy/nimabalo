@@ -15,6 +15,7 @@ function getSiteUrl(): string {
     return process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
   }
   
+  // Use the NEXT_PUBLIC_SITE_URL which is now properly configured in next.config.mjs
   return process.env.NEXT_PUBLIC_SITE_URL || 'https://nimabalo.uz';
 }
 

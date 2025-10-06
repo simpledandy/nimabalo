@@ -1,9 +1,25 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   env: {
-    NEXT_PUBLIC_SITE_URL: process.env.NODE_ENV === 'development' 
-      ? 'http://localhost:3000' 
-      : (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://nimabalo.uz')
+    NEXT_PUBLIC_SITE_URL: (() => {
+      // Development
+      if (process.env.NODE_ENV === 'development') {
+        return 'http://localhost:3000';
+      }
+      
+      // Production (main branch) - always use nimabalo.uz
+      if (process.env.VERCEL_GIT_COMMIT_REF === 'main' || process.env.VERCEL_GIT_COMMIT_REF === 'master') {
+        return 'https://nimabalo.uz';
+      }
+      
+      // Preview deployments (other branches) - use Vercel URL
+      if (process.env.VERCEL_URL) {
+        return `https://${process.env.VERCEL_URL}`;
+      }
+      
+      // Fallback
+      return 'https://nimabalo.uz';
+    })()
   },
   
   // SEO and Performance optimizations

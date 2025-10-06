@@ -13,7 +13,28 @@ const { customAlphabet } = require('nanoid');
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const DATABASE_URL = process.env.DATABASE_URL;
-const SITE_URL = process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+// Determine SITE_URL based on environment
+const getSiteUrl = () => {
+  // If explicitly set, use that
+  if (process.env.SITE_URL) {
+    return process.env.SITE_URL;
+  }
+  
+  // For production (main branch), always use nimabalo.uz
+  if (process.env.NODE_ENV === 'production' && !process.env.VERCEL_URL) {
+    return 'https://nimabalo.uz';
+  }
+  
+  // For preview deployments, use the Vercel URL
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  
+  // Fallback
+  return process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+};
+
+const SITE_URL = getSiteUrl();
 const ADMIN_TELEGRAM_ID = process.env.ADMIN_TELEGRAM_ID; // For feedback notifications
 
 // Enhanced error handling
@@ -245,7 +266,8 @@ bot.onText(/\/start(?:\s+(.*))?/, async (msg, match) => {
       // Create personalized welcome message
       const userName = userData.firstName || 'do\'st';
       const hasUsername = userData.username ? ` (@${userData.username})` : '';
-      const suggestedUsername = userData.username || `tg_${userData.telegramId}`;
+      // Use Telegram username if available, otherwise use Telegram ID
+      const suggestedUsername = userData.username ? userData.username : `tg_${userData.telegramId}`;
       
       const welcome = `Assalomu alaykum, ${userName}${hasUsername}!\n\n` +
         `🎯 Nimabalo - bu savollar va javoblar platformasi\n` +

@@ -14,6 +14,7 @@ interface UsernameInputProps {
   showSuggestions?: boolean;
   userEmail?: string;
   userFullName?: string;
+  telegramUsername?: string;
 }
 
 export default function UsernameInput({
@@ -24,7 +25,8 @@ export default function UsernameInput({
   className = "",
   showSuggestions = true,
   userEmail,
-  userFullName
+  userFullName,
+  telegramUsername
 }: UsernameInputProps) {
   const [suggestedUsername, setSuggestedUsername] = useState('');
   const validation = useUsernameValidation(value, currentUsername);
@@ -32,11 +34,11 @@ export default function UsernameInput({
   // Generate initial suggestion when component mounts or user data changes
   useEffect(() => {
     if (userEmail && !value && !currentUsername) {
-      const suggested = generateSuggestedUsername(userEmail, userFullName);
+      const suggested = generateSuggestedUsername(userEmail, userFullName, telegramUsername);
       setSuggestedUsername(suggested);
       onChange(suggested);
     }
-  }, [userEmail, userFullName, value, currentUsername, onChange]);
+  }, [userEmail, userFullName, telegramUsername, value, currentUsername, onChange]);
 
   const handleSelectAlternative = (altUsername: string) => {
     onChange(altUsername, validation.isAvailable);

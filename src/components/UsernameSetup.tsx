@@ -21,7 +21,11 @@ export default function UsernameSetup({ user, onComplete, onSkip }: UsernameSetu
   // Generate initial suggestion when component mounts
   useEffect(() => {
     if (user?.email) {
-      const suggested = generateSuggestedUsername(user.email, user.user_metadata?.full_name);
+      const suggested = generateSuggestedUsername(
+        user.email, 
+        user.user_metadata?.full_name,
+        user.user_metadata?.telegram_username
+      );
       setSuggestedUsername(suggested);
       setUsername(suggested);
     }
@@ -89,6 +93,7 @@ export default function UsernameSetup({ user, onComplete, onSkip }: UsernameSetu
             placeholder={strings.profile.usernameSetup.usernamePlaceholder}
             userEmail={user?.email}
             userFullName={user?.user_metadata?.full_name}
+            telegramUsername={user?.user_metadata?.telegram_username}
             showSuggestions={true}
           />
 

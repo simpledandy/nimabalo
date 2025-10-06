@@ -3,13 +3,22 @@
  */
 
 /**
- * Generate a suggested username based on email and name
+ * Generate a suggested username based on email, name, and Telegram username
  */
-export function generateSuggestedUsername(email?: string, fullName?: string): string {
+export function generateSuggestedUsername(email?: string, fullName?: string, telegramUsername?: string): string {
   let base = '';
   
-  // If we have a full name, use it as the primary base
-  if (fullName && fullName.trim()) {
+  // Priority 1: Use Telegram username if available
+  if (telegramUsername && telegramUsername.trim()) {
+    base = telegramUsername
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9_]/g, '') // Remove special characters except underscores
+      .substring(0, 20); // Limit length
+  }
+  
+  // Priority 2: If we have a full name, use it as the base
+  if (!base && fullName && fullName.trim()) {
     base = fullName
       .toLowerCase()
       .trim()
@@ -18,7 +27,7 @@ export function generateSuggestedUsername(email?: string, fullName?: string): st
       .substring(0, 15); // Limit length
   }
   
-  // If no name or empty, use email prefix
+  // Priority 3: If no name or empty, use email prefix
   if (!base && email) {
     base = email
       .split('@')[0]
@@ -27,7 +36,7 @@ export function generateSuggestedUsername(email?: string, fullName?: string): st
       .substring(0, 15);
   }
   
-  // If still no base, generate a random one
+  // Priority 4: If still no base, generate a random one
   if (!base) {
     base = 'user' + Math.floor(Math.random() * 10000);
   }
@@ -45,23 +54,23 @@ export function generateSuggestedUsername(email?: string, fullName?: string): st
  */
 export function validateUsername(username: string): { valid: boolean; error?: string } {
   if (!username || username.length < 3) {
-    return { valid: false, error: 'Username must be at least 3 characters long' };
+    return { valid: false, error: 'Username kamida 3 ta belgidan iborat bo\'lishi kerak' };
   }
   
   if (username.length > 20) {
-    return { valid: false, error: 'Username must be 20 characters or less' };
+    return { valid: false, error: 'Username 20 ta belgidan ko\'p bo\'lmasligi kerak' };
   }
   
   if (!/^[a-z0-9_]+$/.test(username)) {
-    return { valid: false, error: 'Username can only contain lowercase letters, numbers, and underscores' };
+    return { valid: false, error: 'Username faqat kichik harflar, raqamlar va pastki chiziqdan iborat bo\'lishi mumkin' };
   }
   
   if (username.startsWith('_') || username.endsWith('_')) {
-    return { valid: false, error: 'Username cannot start or end with underscore' };
+    return { valid: false, error: 'Username pastki chiziq bilan boshlanmasligi yoki tugamasligi kerak' };
   }
   
   if (username.includes('__')) {
-    return { valid: false, error: 'Username cannot contain consecutive underscores' };
+    return { valid: false, error: 'Username ketma-ket pastki chiziqlardan iborat bo\'lmasligi kerak' };
   }
   
   return { valid: true };
@@ -84,17 +93,17 @@ export async function isUsernameAvailable(username: string, supabase: any): Prom
       .single();
     
     if (error && error.code !== 'PGRST116') { // PGRST116 is "not found" error
-      return { available: false, error: 'Error checking username availability' };
+      return { available: false, error: 'Username mavjudligini tekshirishda xatolik' };
     }
     
     // If we got data, username is taken
     if (data) {
-      return { available: false, error: 'This username is already taken' };
+      return { available: false, error: 'Bu username allaqachon ishlatilgan' };
     }
     
     return { available: true };
   } catch (err) {
-    return { available: false, error: 'Error checking username availability' };
+    return { available: false, error: 'Username mavjudligini tekshirishda xatolik' };
   }
 }
 

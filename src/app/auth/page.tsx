@@ -261,14 +261,14 @@ export default function AuthPage() {
   const handleUsernameSetupComplete = (username: string) => {
     setShowUsernameSetup(false);
     setNeedsUsernameSetup(false);
-    addToast(`Welcome to Nimabalo, @${username}! 🎉`, "success");
+    addToast(`Nimabalo'ga xush kelibsiz, @${username}! 🎉`, "success");
     router.push(`/${username}`);
   };
 
   const handleUsernameSetupSkip = () => {
     setShowUsernameSetup(false);
     setNeedsUsernameSetup(false);
-    addToast("You can set your username later in your profile", "info");
+    addToast("Username'ni keyinroq profil sahifasida o'rnatishingiz mumkin", "info");
     router.push(`/user/${user?.id}`);
   };
 

@@ -50,7 +50,12 @@ In your Render service, add these environment variables:
 ### Required Variables:
 - `TELEGRAM_BOT_TOKEN` - Your Telegram bot token
 - `DATABASE_URL` - Your Render Postgres database URL
-- `SITE_URL` - Your Vercel deployment URL (e.g., `https://nimabalo.uz` or your preview URL)
+- `SITE_URL` - Your Vercel deployment URL (e.g., `https://nimabalo.uz` for production, or preview URL for testing)
+
+**Note**: The bot automatically detects the correct URL based on the deployment:
+- **Production (main branch)**: Always uses `https://nimabalo.uz`
+- **Preview deployments**: Uses the Vercel-generated URL
+- **Development**: Uses `http://localhost:3000`
 
 ### Optional Variables:
 - `NODE_ENV` - Set to `production`
