@@ -1,10 +1,15 @@
 'use client';
 
 import { useState } from "react";
-import { useSession } from "@/lib/useSession";
+import dynamic from "next/dynamic";
 import { useQuestions } from "@/lib/useQuestions";
 import LatestQuestions from "@/components/LatestQuestions";
-import AppSidebar from "@/components/AppSidebar";
+
+// Lazy load sidebar for better performance
+const AppSidebar = dynamic(() => import("@/components/AppSidebar"), {
+  ssr: false,
+  loading: () => <div className="hidden lg:block w-80" />
+});
 
 type Question = {
   id: string;
@@ -20,7 +25,6 @@ interface QuestionsFeedClientProps {
 }
 
 export default function QuestionsFeedClient({ initialQuestions }: QuestionsFeedClientProps) {
-  const { user } = useSession();
   const { questions: hookQuestions, loading, setQuestions } = useQuestions();
   const [showAuthModal, setShowAuthModal] = useState(false);
 

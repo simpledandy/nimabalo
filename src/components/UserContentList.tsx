@@ -4,8 +4,6 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { strings, formatString } from '@/lib/strings';
 import LoadingSkeleton from './LoadingSkeleton';
-import QuestionCard from './QuestionCard';
-import AnswerCard from './AnswerPreview';
 import Link from 'next/link';
 
 type Question = {
@@ -45,7 +43,6 @@ export default function UserContentList({
 }: UserContentListProps) {
   const [items, setItems] = useState<(Question | Answer)[]>([]);
   const [loading, setLoading] = useState(true);
-  const [hoveredElement, setHoveredElement] = useState<string | null>(null);
 
   useEffect(() => {
     if (!userId) return;
@@ -159,7 +156,7 @@ export default function UserContentList({
       )}
       
       <div className="space-y-4">
-        {items.map((item, index) => (
+        {items.map((item) => (
           <div key={item.id} className="border border-gray-100 rounded-lg p-4 hover:bg-accent/5 transition-colors">
             {type === 'questions' ? (
               <div>

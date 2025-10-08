@@ -46,7 +46,7 @@ export function useConfirmation() {
       state.onConfirm();
     }
     close();
-  }, [state.onConfirm, close]);
+  }, [state, close]);
 
   return {
     isOpen: state.isOpen,

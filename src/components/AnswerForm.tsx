@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { strings, formatString } from '@/lib/strings';
-import AuthModal from './AuthModal';
+import { strings } from '@/lib/strings';
+import AppModal from './AppModal';
 
 type Answer = { 
   id: string; 
@@ -13,7 +13,7 @@ type Answer = {
 };
 
 interface AnswerFormProps {
-  user: any;
+  user: { id: string } | null;
   questionId: string;
   onAnswerPosted: (answers: Answer[]) => void;
   onShowConfetti: () => void;
@@ -27,6 +27,7 @@ export default function AnswerForm({ user, questionId, onAnswerPosted, onShowCon
   const [showAuthModal, setShowAuthModal] = useState(false);
 
   async function postAnswer() {
+    if (!user) return;
     setPosting(true);
     setErr('');
     try {
@@ -52,8 +53,9 @@ export default function AnswerForm({ user, questionId, onAnswerPosted, onShowCon
       if (data) {
         onAnswerPosted(data);
       }
-    } catch (e: any) {
-      setErr(e.message ?? strings.question.errors.answerSubmitError);
+    } catch (e) {
+      const error = e as Error;
+      setErr(error.message ?? strings.question.errors.answerSubmitError);
     } finally {
       setPosting(false);
     }
@@ -161,12 +163,30 @@ export default function AnswerForm({ user, questionId, onAnswerPosted, onShowCon
       )}
 
       {/* Auth Modal */}
-      <AuthModal
+      <AppModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
+        icon="🔐"
         title={strings.authModal.titles.answerQuestion}
-        message={strings.authModal.messages.answerQuestion}
-      />
+        subtitle={strings.authModal.messages.answerQuestion}
+      >
+        <div className="flex flex-col gap-3 w-full">
+          <a 
+            href="/auth" 
+            className="btn w-full text-center py-3 font-bold text-lg hover:scale-105 transition-transform"
+          >
+            <span className="mr-2">🔑</span>
+            Tizimga kirish
+          </a>
+          <a 
+            href="/auth?signup=1" 
+            className="btn-secondary w-full text-center py-3 font-bold text-lg hover:scale-105 transition-transform"
+          >
+            <span className="mr-2">✨</span>
+            Ro'yxatdan o'tish
+          </a>
+        </div>
+      </AppModal>
     </div>
   );
 }

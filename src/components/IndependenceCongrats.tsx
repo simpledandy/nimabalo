@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import AppModal from "./AppModal";
 
 function getTodayKey(): string {
 	const now = new Date();
@@ -28,7 +29,7 @@ export default function IndependenceCongrats() {
 				setIsVisible(true);
 				window.localStorage.setItem(key, "1");
 			}
-		} catch (_) {
+		} catch {
 			// ignore storage errors
 		}
 	}, []);
@@ -36,44 +37,35 @@ export default function IndependenceCongrats() {
 	if (!isMounted || !isVisible) return null;
 
 	return (
-		<div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-			{/* Backdrop */}
-			<div className="absolute inset-0 bg-gradient-to-b from-primary/60 to-secondary/60 backdrop-blur-sm animate-fade-in" />
-			{/* Fireworks-like confetti circles */}
-			<div className="pointer-events-none absolute inset-0 overflow-hidden">
-				<div className="absolute w-3 h-3 bg-warm rounded-full animate-bounce-slow left-[15%] top-[20%]" />
-				<div className="absolute w-2 h-2 bg-warm/80 rounded-full animate-bounce-slower left-[70%] top-[25%]" />
-				<div className="absolute w-4 h-4 bg-accent rounded-full animate-bounce-slowest left-[40%] top-[10%]" />
-				<div className="absolute w-2.5 h-2.5 bg-secondary rounded-full animate-bounce-slow right-[15%] bottom-[20%]" />
-				<div className="absolute w-3.5 h-3.5 bg-accent/80 rounded-full animate-bounce-slower right-[35%] bottom-[10%]" />
-			</div>
-			{/* Card */}
-			<div className="relative mx-auto max-w-lg w-full">
-				<div className="relative bg-white rounded-2xl shadow-2xl px-8 py-10 text-center animate-scale-in">
-					<div className="text-sm tracking-widest font-bold text-accent mb-2">1-SENTABR</div>
-					<h2 className="text-3xl md:text-4xl font-extrabold mb-3 text-primary">Mustaqillik kuni muborak!</h2>
-					<p className="text-neutral mb-6">Erkin savol berishda davom etaylik. Bayramingiz muborak!</p>
-					<button
-						className="inline-flex items-center justify-center px-5 py-3 rounded-xl bg-accent hover:bg-secondary text-white font-bold shadow-md transition-all"
-						onClick={() => setIsVisible(false)}
-					>
-						Rahmat!
-					</button>
-
-					{/* Decorative flags */}
-					<div className="absolute -top-5 -left-5 w-14 h-14 rounded-xl rotate-[-8deg] shadow-md overflow-hidden">
-						<div className="w-full h-1/3 bg-primary" />
-						<div className="w-full h-1/3 bg-white" />
-						<div className="w-full h-1/3 bg-secondary" />
-					</div>
-					<div className="absolute -bottom-5 -right-5 w-14 h-14 rounded-xl rotate-[12deg] shadow-md overflow-hidden">
-						<div className="w-full h-1/3 bg-primary" />
-						<div className="w-full h-1/3 bg-white" />
-						<div className="w-full h-1/3 bg-secondary" />
-					</div>
+		<AppModal
+			isOpen={isVisible}
+			onClose={() => setIsVisible(false)}
+			maxWidth="lg"
+		>
+			<div className="text-center relative">
+				<div className="text-sm tracking-widest font-bold text-accent mb-2">1-SENTABR</div>
+				<h2 className="text-3xl md:text-4xl font-extrabold mb-3 text-primary">Mustaqillik kuni muborak!</h2>
+				<p className="text-neutral mb-6">Erkin savol berishda davom etaylik. Bayramingiz muborak!</p>
+				<button
+					className="btn px-5 py-3"
+					onClick={() => setIsVisible(false)}
+				>
+					Rahmat!
+				</button>
+				
+				{/* Decorative flags */}
+				<div className="absolute -top-5 -left-5 w-14 h-14 rounded-xl rotate-[-8deg] shadow-md overflow-hidden">
+					<div className="w-full h-1/3 bg-primary" />
+					<div className="w-full h-1/3 bg-white" />
+					<div className="w-full h-1/3 bg-secondary" />
+				</div>
+				<div className="absolute -bottom-5 -right-5 w-14 h-14 rounded-xl rotate-[12deg] shadow-md overflow-hidden">
+					<div className="w-full h-1/3 bg-primary" />
+					<div className="w-full h-1/3 bg-white" />
+					<div className="w-full h-1/3 bg-secondary" />
 				</div>
 			</div>
-		</div>
+		</AppModal>
 	);
 }
 

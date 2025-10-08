@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from './supabaseClient';
-import { queryWithTimeout, handleSupabaseError } from './supabaseUtils';
+import { handleSupabaseError } from './supabaseUtils';
 
 type Question = {
   id: string;
@@ -23,12 +23,12 @@ export function useQuestions() {
     
     (async () => {
       try {
-        const query = supabase
+        const result = await supabase
           .from('questions')
           .select('id,title,body,created_at,user_id,same_count')
           .order('created_at', { ascending: false });
         
-        const { data, error } = await queryWithTimeout(query, 8000) as { data: any; error: any };
+        const { data, error } = result;
         
         if (isMounted) {
           if (error) {

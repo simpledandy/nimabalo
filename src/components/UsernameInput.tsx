@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { generateSuggestedUsername } from '@/lib/usernameUtils';
 import { useUsernameValidation } from '@/lib/useUsernameValidation';
 import { strings } from '@/lib/strings';
@@ -28,17 +28,16 @@ export default function UsernameInput({
   userFullName,
   telegramUsername
 }: UsernameInputProps) {
-  const [suggestedUsername, setSuggestedUsername] = useState('');
   const validation = useUsernameValidation(value, currentUsername);
 
   // Generate initial suggestion when component mounts or user data changes
   useEffect(() => {
     if (userEmail && !value && !currentUsername) {
       const suggested = generateSuggestedUsername(userEmail, userFullName, telegramUsername);
-      setSuggestedUsername(suggested);
       onChange(suggested);
     }
-  }, [userEmail, userFullName, telegramUsername, value, currentUsername, onChange]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userEmail, userFullName, telegramUsername, value, currentUsername]);
 
   const handleSelectAlternative = (altUsername: string) => {
     onChange(altUsername, validation.isAvailable);

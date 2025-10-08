@@ -5,6 +5,9 @@ import PageLayout from '@/components/PageLayout';
 import PageHeader from '@/components/PageHeader';
 import QuestionsFeedClient from './QuestionsFeedClient';
 
+// Cache this page for 30 seconds in production
+export const revalidate = 30;
+
 type Question = {
   id: string;
   title: string;

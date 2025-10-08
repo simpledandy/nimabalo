@@ -20,10 +20,9 @@ interface ConfettiEffectProps {
 export default function ConfettiEffect({ isActive, onComplete }: ConfettiEffectProps) {
   const [confetti, setConfetti] = useState<ConfettiPiece[]>([]);
 
-  const colors = ['#0ea5e9', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
-
   useEffect(() => {
     if (isActive) {
+      const colors = ['#0ea5e9', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
       const pieces: ConfettiPiece[] = [];
       for (let i = 0; i < 50; i++) {
         pieces.push({

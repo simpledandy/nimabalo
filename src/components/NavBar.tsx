@@ -6,9 +6,8 @@ import { supabase } from '@/lib/supabaseClient';
 import { useSession } from '@/lib/useSession';
 import { usePathname } from 'next/navigation';
 import SurpriseCTA from './SurpriseCTA';
-import ConfirmationModal from './ConfirmationModal';
+import AppModal from './AppModal';
 import ProfileIconButton from './ProfileIconButton';
-import NotificationModal from './NotificationModal';
 import { useConfirmation } from '@/lib/useConfirmation';
 import { useBadges } from '@/lib/useBadges';
 import { strings } from '@/lib/strings';
@@ -96,18 +95,68 @@ export default function NavBar() {
       </nav>
 
       {/* Confirmation Modal */}
-      <ConfirmationModal
+      <AppModal
         isOpen={isOpen}
         onClose={close}
-        onConfirm={handleConfirm}
-        {...config}
-      />
+        icon={config.icon || '⚠️'}
+        title={config.title}
+        subtitle={config.message}
+        showCloseButton={false}
+      >
+        <div className="flex flex-col gap-3 w-full">
+          <button 
+            onClick={handleConfirm}
+            className={`${
+              config.confirmButtonStyle === 'danger' ? 'btn-danger' :
+              config.confirmButtonStyle === 'secondary' ? 'btn-secondary' : 'btn'
+            } w-full text-center py-3 font-bold text-lg hover:scale-105 transition-transform`}
+          >
+            {config.confirmText}
+          </button>
+          <button 
+            onClick={close}
+            className="text-neutral hover:text-primary transition-colors py-2 font-medium"
+          >
+            {config.cancelText}
+          </button>
+        </div>
+      </AppModal>
 
       {/* Notification Modal */}
-      <NotificationModal
+      <AppModal
         isOpen={showNotifications}
         onClose={() => setShowNotifications(false)}
-      />
+        icon="🔔"
+        title={strings.notifications.title}
+        subtitle={strings.notifications.subtitle}
+      >
+        <div className="w-full space-y-4">
+          {hasUnreadNotifications ? (
+            <div className="card p-4 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200">
+              <div className="flex items-center gap-3">
+                <div className="text-2xl">🏆</div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-primary text-sm">Yangi badge!</h3>
+                  <p className="text-neutral text-xs mt-1">Siz yangi nishon oldingiz!</p>
+                </div>
+                <div className="text-emerald-600 text-lg">✨</div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <div className="text-4xl mb-3">📭</div>
+              <p className="text-neutral text-sm">{strings.notifications.noNotifications}</p>
+            </div>
+          )}
+          <button 
+            onClick={() => setShowNotifications(false)}
+            className="btn w-full text-center py-3 font-bold text-lg hover:scale-105 transition-transform"
+          >
+            <span className="mr-2">✅</span>
+            {strings.notifications.gotIt}
+          </button>
+        </div>
+      </AppModal>
     </header>
   );
 }

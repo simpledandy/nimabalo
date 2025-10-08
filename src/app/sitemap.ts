@@ -42,7 +42,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         .limit(1000); // Limit to prevent sitemap from being too large
       
       if (!error && questions) {
-        questionPages = questions.map((question: any) => ({
+        questionPages = questions.map((question) => ({
           url: `${baseUrl}/q/${question.id}`,
           lastModified: question.updated_at ? new Date(question.updated_at) : new Date(question.created_at),
           changeFrequency: 'weekly' as const,
@@ -70,7 +70,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         .limit(500); // Limit to prevent sitemap from being too large
       
       if (!error && profiles) {
-        userPages = profiles.map((profile: any) => ({
+        userPages = profiles.map((profile) => ({
           url: `${baseUrl}/${profile.username}`,
           lastModified: profile.updated_at ? new Date(profile.updated_at) : new Date(profile.created_at),
           changeFrequency: 'monthly' as const,

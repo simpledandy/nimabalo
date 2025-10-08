@@ -9,7 +9,7 @@ import { strings } from '@/lib/strings';
 import { useEffect, useRef, useState } from 'react';
 import { useToast } from '@/components/ToastContext';
 import Link from 'next/link';
-import BadgeModal from '@/components/BadgeModal';
+import AppModal from '@/components/AppModal';
 import UsernameSetup from '@/components/UsernameSetup';
 import { useRouter } from 'next/navigation';
 
@@ -29,8 +29,6 @@ export default function AuthPage() {
     const params = new URLSearchParams(window.location.search);
     const accessToken = params.get('access_token');
     const refreshToken = params.get('refresh_token');
-    const tgEmail = params.get('tg_email');
-    const tgPw = params.get('tg_pw');
     if (!accessToken || !refreshToken) return;
 
     (async () => {
@@ -110,7 +108,7 @@ export default function AuthPage() {
   }, [user, addToast]);
 
   // Function to translate Supabase errors to Uzbek
-  const translateAuthError = (error: any): string => {
+  const translateAuthError = (error: { message?: string; code?: string }): string => {
     if (!error) return strings.auth.validationErrors.genericError;
     
     const errorMessage = error.message?.toLowerCase() || '';
@@ -195,17 +193,13 @@ export default function AuthPage() {
 
   // Listen for auth state changes and handle errors
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT') {
-        // Handle sign out if needed
-      } else if (event === 'SIGNED_IN') {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_IN') {
         // Handle successful sign in
         if (!greeted.current) {
           addToast(strings.auth.welcome, "success");
           greeted.current = true;
         }
-      } else if (event === 'TOKEN_REFRESHED') {
-        // Handle token refresh
       }
     });
 
@@ -299,12 +293,29 @@ export default function AuthPage() {
           </div>
 
           {/* Badge Modal */}
-          <BadgeModal
+          <AppModal
             isOpen={!!newBadge}
             onClose={clearNewBadge}
-            userPosition={userPosition}
-            userName={userName}
-          />
+            icon="🤩"
+            maxWidth="lg"
+            className="border-2 border-emerald-500/30"
+          >
+            <div className="text-center">
+              <h2 className="text-2xl md:text-3xl font-extrabold mb-4 text-emerald-700">
+                {userPosition !== null ? `${userPosition}-Foydalanuvchi` : 'Foydalanuvchi'}
+              </h2>
+              <p className="text-base md:text-lg text-emerald-700 mb-8 opacity-90">
+                {userName || 'User'} nimabalo saytidan {userPosition !== null ? userPosition : 'n'}-chi bo'lib ro'yxatdan o'tdi!
+              </p>
+              <button
+                className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white px-6 py-3 rounded-xl font-bold shadow-lg transition-all duration-300 hover:scale-105 active:scale-95"
+                onClick={clearNewBadge}
+              >
+                <span className="mr-2">🎉</span>
+                Rahmat!
+              </button>
+            </div>
+          </AppModal>
         </div>
       </div>
     );
@@ -454,12 +465,29 @@ export default function AuthPage() {
       </div>
 
       {/* Badge Modal */}
-      <BadgeModal
+      <AppModal
         isOpen={!!newBadge}
         onClose={clearNewBadge}
-        userPosition={userPosition}
-        userName={userName}
-      />
+        icon="🤩"
+        maxWidth="lg"
+        className="border-2 border-emerald-500/30"
+      >
+        <div className="text-center">
+          <h2 className="text-2xl md:text-3xl font-extrabold mb-4 text-emerald-700">
+            {userPosition !== null ? `${userPosition}-Foydalanuvchi` : 'Foydalanuvchi'}
+          </h2>
+          <p className="text-base md:text-lg text-emerald-700 mb-8 opacity-90">
+            {userName || 'User'} nimabalo saytidan {userPosition !== null ? userPosition : 'n'}-chi bo'lib ro'yxatdan o'tdi!
+          </p>
+          <button
+            className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white px-6 py-3 rounded-xl font-bold shadow-lg transition-all duration-300 hover:scale-105 active:scale-95"
+            onClick={clearNewBadge}
+          >
+            <span className="mr-2">🎉</span>
+            Rahmat!
+          </button>
+        </div>
+      </AppModal>
     </div>
   );
 }

@@ -1,14 +1,22 @@
 "use client";
 
-import { ReactNode } from 'react';
 import Link from 'next/link';
 import { strings } from '@/lib/strings';
 import LatestQuestions from './LatestQuestions';
 
+type Question = {
+  id: string;
+  title: string;
+  body: string | null;
+  created_at: string;
+  user_id?: string;
+  same_count?: number;
+};
+
 interface AppSidebarProps {
-  questions?: any[];
+  questions?: Question[];
   loading?: boolean;
-  onQuestionsUpdate?: (questions: any[]) => void;
+  onQuestionsUpdate?: (questions: Question[]) => void;
   showAuthModal?: boolean;
   setShowAuthModal?: (show: boolean) => void;
   variant?: 'home' | 'feed';

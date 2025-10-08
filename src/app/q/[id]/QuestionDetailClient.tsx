@@ -1,14 +1,21 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useSession } from '@/lib/useSession';
 import { strings } from '@/lib/strings';
-import ConfettiEffect from '@/components/ConfettiEffect';
-import ScrollToTopButton from '@/components/ScrollToTopButton';
 import QuestionCard from '@/components/QuestionCard';
 import AnswersList from '@/components/AnswersList';
 import AnswerForm from '@/components/AnswerForm';
+
+// Lazy load visual effects for better performance
+const ConfettiEffect = dynamic(() => import('@/components/ConfettiEffect'), {
+  ssr: false
+});
+
+const ScrollToTopButton = dynamic(() => import('@/components/ScrollToTopButton'), {
+  ssr: false
+});
 
 type Question = { 
   id: string; 

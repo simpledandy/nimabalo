@@ -33,7 +33,6 @@ export default function AnswersList({
 }: AnswersListProps) {
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'longest' | 'shortest'>('newest');
   const [sortAnimation, setSortAnimation] = useState(false);
-  const [answerCountAnimation, setAnswerCountAnimation] = useState(false);
 
   // Trigger sort animation when sort changes
   useEffect(() => {
@@ -64,9 +63,7 @@ export default function AnswersList({
       <div className="flex items-center justify-between relative">
         <div className="flex items-center gap-3">
           <h2 className="text-xl sm:text-2xl font-bold text-primary">{strings.question.answers}</h2>
-          <div className={`bg-accent px-2 sm:px-3 py-1 rounded-full text-white font-medium flex items-center gap-1 transition-all duration-300 ${
-            answerCountAnimation ? 'scale-125 bg-secondary shadow-lg' : 'animate-scale-in'
-          }`}>
+          <div className="bg-accent px-2 sm:px-3 py-1 rounded-full text-white font-medium flex items-center gap-1 transition-all duration-300 animate-scale-in">
             <span className="animate-bounce-slow">💬</span>
             <span className="font-bold text-sm sm:text-base">{answers.length}</span>
           </div>

@@ -256,6 +256,8 @@ const makeAuthUrl = (token) => `${SITE_URL}/api/tg-auth?tg_token=${encodeURIComp
 bot.onText(/\/start(?:\s+(.*))?/, async (msg, match) => {
   const chatId = msg.chat.id;
   const tgUser = msg.from;
+  
+  console.log(`📨 /start command from ${tgUser.id} (${tgUser.username || tgUser.first_name})`);
 
   try {
     await ErrorHandler.handleWithRetry(async () => {
@@ -520,21 +522,6 @@ async function askForCustomAnswer(chatId, tgUser, questionType) {
   // This is a simple approach - in production you might want to use a state management system
 }
 
-// Handle text messages for custom feedback answers
-bot.on('message', async (msg) => {
-  const chatId = msg.chat.id;
-  const text = msg.text;
-  const tgUser = msg.from;
-  
-  // Simple check if this looks like a custom feedback answer
-  // In production, you'd want a more robust state management system
-  if (text && text.length > 10 && !text.startsWith('/')) {
-    // This might be a custom feedback answer
-    // For now, we'll just acknowledge it
-    await bot.sendMessage(chatId, `📝 Rahmat! Sizning javobingiz qayd etildi: "${text}"`);
-  }
-});
-
 // Create a simple HTTP server for Render (required for web services)
 const http = require('http');
 
@@ -551,7 +538,10 @@ const server = http.createServer((req, res) => {
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   // eslint-disable-next-line no-console
-  console.log(`Telegram bot is running on port ${PORT}`);
+  console.log(`✅ Telegram bot is running on port ${PORT}`);
+  console.log(`🌐 Site URL: ${SITE_URL}`);
+  console.log(`🔐 Admin ID: ${ADMIN_TELEGRAM_ID ? 'SET' : 'NOT SET'}`);
+  console.log(`💾 Database: ${DATABASE_URL ? 'CONNECTED' : 'NOT CONNECTED'}`);
 });
 
 // Set up persistent keyboard with control buttons
@@ -590,7 +580,7 @@ bot.onText(/\/admin/, async (msg) => {
   }
 });
 
-// Handle control button presses
+// Handle control button presses and regular messages
 bot.on('message', async (msg) => {
   const chatId = msg.chat.id;
   const text = msg.text;
@@ -600,6 +590,8 @@ bot.on('message', async (msg) => {
   if (!text || text.startsWith('/') || text.length < 3) {
     return;
   }
+  
+  console.log(`📩 Message from ${tgUser.id}: "${text.substring(0, 30)}${text.length > 30 ? '...' : ''}"`);
   
   try {
     switch (text) {

@@ -66,12 +66,21 @@ export const metadata: Metadata = {
   },
 };
 
+// Cache this page for 30 seconds in production
+export const revalidate = 30;
+
 // Server-side function to fetch questions
 async function getQuestions(): Promise<Question[]> {
   try {
     // Check if environment variables are available
+    console.log('🔍 Server-side env check:', {
+      url: process.env.NEXT_PUBLIC_SUPABASE_URL ? '✅ SET' : '❌ NOT SET',
+      serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY ? '✅ SET' : '❌ NOT SET'
+    });
+    
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      console.warn('Supabase environment variables not available during build, returning empty array');
+      console.warn('⚠️ Supabase environment variables not available during build, returning empty array');
+      console.warn('⚠️ Make sure .env.local exists and dev server was restarted');
       return [];
     }
 
@@ -83,13 +92,14 @@ async function getQuestions(): Promise<Question[]> {
       .limit(20); // Limit for better performance
     
     if (error) {
-      console.error('Error fetching questions:', error);
+      console.error('❌ Error fetching questions:', error);
       return [];
     }
     
+    console.log(`✅ Fetched ${data?.length || 0} questions from Supabase`);
     return data || [];
   } catch (err) {
-    console.error('Error fetching questions:', err);
+    console.error('❌ Exception fetching questions:', err);
     return [];
   }
 }

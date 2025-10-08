@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useSession } from '@/lib/useSession';
 import { strings, formatString } from '@/lib/strings';
-import { queryWithTimeout, handleSupabaseError } from '@/lib/supabaseUtils';
+import { handleSupabaseError } from '@/lib/supabaseUtils';
 import { timeAgo } from '@/lib/timeUtils';
 
 type Question = {
@@ -27,7 +27,6 @@ export default function LatestQuestions({
   questions, 
   loading, 
   onQuestionsUpdate,
-  showAuthModal,
   setShowAuthModal,
   showClickableHeader = false,
   stackedButtons = false
@@ -55,17 +54,17 @@ export default function LatestQuestions({
     
     (async () => {
       try {
-        const query = supabase
+        const result = await supabase
           .from('profiles')
           .select('id, username, full_name')
           .in('id', userIds);
         
-        const { data, error } = await queryWithTimeout(query, 5000) as { data: any; error: any };
+        const { data, error } = result;
         
         if (isMounted && !error && data) {
           const authorMap: Record<string, string> = {};
           const profileMap: Record<string, Profile> = {};
-          (data as Profile[]).forEach(p => {
+          data.forEach(p => {
             authorMap[p.id] = (p.full_name?.trim() || p.username?.trim() || strings.latestQuestions.anonymousUser);
             profileMap[p.id] = p;
           });
@@ -90,18 +89,18 @@ export default function LatestQuestions({
     (async () => {
       try {
         const questionIds = questions.map(q => q.id);
-        const query = supabase
+        const result = await supabase
           .from('user_reactions')
           .select('question_id')
           .eq('user_id', user.id)
           .eq('reaction_type', 'same_question')
           .in('question_id', questionIds);
         
-        const { data, error } = await queryWithTimeout(query, 5000) as { data: any; error: any };
+        const { data, error } = result;
         
         if (isMounted && !error && data) {
           const map: Record<string, boolean> = {};
-          data.forEach((r: { question_id: string }) => { map[r.question_id] = true; });
+          data.forEach(r => { map[r.question_id] = true; });
           setReactions(map);
         }
       } catch (err) {

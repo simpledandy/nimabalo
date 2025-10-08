@@ -27,7 +27,7 @@ export function useReactions({
     count: initialCount
   });
 
-  const { insert, update, delete: deleteRecord } = useSupabaseSubmission({
+  const { insert, delete: deleteRecord } = useSupabaseSubmission({
     errorMessage: 'Failed to update reaction'
   });
 

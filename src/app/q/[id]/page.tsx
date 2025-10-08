@@ -1,5 +1,4 @@
 import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
 import { strings } from '@/lib/strings';
 import SparkleEffect from '@/components/SparkleEffect';

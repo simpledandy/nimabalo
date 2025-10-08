@@ -1,5 +1,5 @@
 "use client";
-import { Toast, ToastType } from './useToasts';
+import { Toast } from './useToasts';
 
 export default function ToastContainer({ toasts }: { toasts: Toast[] }) {
   return (

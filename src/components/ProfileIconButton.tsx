@@ -11,13 +11,20 @@ interface ProfileIconButtonProps {
   className?: string;
 }
 
+type Profile = {
+  id: string;
+  username: string | null;
+  full_name: string | null;
+  avatar_url: string | null;
+};
+
 export default function ProfileIconButton({ 
   userId, 
   size = 'medium', 
   showTooltip = true,
   className = ""
 }: ProfileIconButtonProps) {
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -91,17 +98,17 @@ export default function ProfileIconButton({
   return (
     <Link 
       href={profileUrl}
-      className={`${sizeClasses[size]} rounded-full bg-white border-2 border-primary text-primary font-bold flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg hover:bg-primary hover:text-white ${className}`}
+      className={`${sizeClasses[size]} rounded-full bg-white border-2 border-primary flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg overflow-hidden ${className}`}
       title={showTooltip ? displayName : undefined}
     >
       {profile?.avatar_url ? (
         <img 
           src={profile.avatar_url} 
           alt={displayName}
-          className="w-full h-full rounded-full object-cover"
+          className="w-full h-full object-cover"
         />
       ) : (
-        <span className="select-none">{initials}</span>
+        <span className="select-none text-primary font-bold">{initials}</span>
       )}
     </Link>
   );

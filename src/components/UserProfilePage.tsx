@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useSession } from '@/lib/useSession';
 import { supabase } from '@/lib/supabaseClient';
 import { strings } from '@/lib/strings';
@@ -19,15 +18,32 @@ interface UserProfilePageProps {
   isUsername: boolean; // true if identifier is username, false if userId
 }
 
+type Profile = {
+  id: string;
+  username: string | null;
+  full_name: string | null;
+  email?: string | null;
+  avatar_url?: string | null;
+};
+
+type Activity = {
+  id: string;
+  type: 'question' | 'answer';
+  title?: string;
+  body?: string;
+  created_at: string;
+  question_id?: string;
+  questions?: { title: string } | { id: string; title: string }[];
+};
+
 export default function UserProfilePage({ identifier, isUsername }: UserProfilePageProps) {
   const { user: currentUser } = useSession();
-  const router = useRouter();
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [userPosition, setUserPosition] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userStats, setUserStats] = useState({ questions: 0, answers: 0 });
-  const [userActivities, setUserActivities] = useState<any[]>([]);
+  const [userActivities, setUserActivities] = useState<Activity[]>([]);
   const [loadingStats, setLoadingStats] = useState(true);
 
   useEffect(() => {
@@ -96,8 +112,8 @@ export default function UserProfilePage({ identifier, isUsername }: UserProfileP
         ]);
 
         const activities = [
-          ...(questionsActivities.data || []).map(q => ({ ...q, type: 'question' })),
-          ...(answersActivities.data || []).map(a => ({ ...a, type: 'answer' }))
+          ...(questionsActivities.data || []).map(q => ({ ...q, type: 'question' as const })),
+          ...(answersActivities.data || []).map(a => ({ ...a, type: 'answer' as const }))
         ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
         setUserActivities(activities);
@@ -153,11 +169,21 @@ export default function UserProfilePage({ identifier, isUsername }: UserProfileP
           <div className="flex items-end gap-6">
             {/* Profile Avatar */}
             <div className="relative">
-              <ProfileIconButton 
-                userId={profile.id} 
-                size="large" 
-                className="w-24 h-24 border-4 border-white shadow-xl"
-              />
+              <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-xl bg-white">
+                {profile.avatar_url ? (
+                  <img 
+                    src={profile.avatar_url} 
+                    alt={profile.full_name || profile.username || 'User'}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <ProfileIconButton 
+                    userId={profile.id} 
+                    size="large" 
+                    className="w-24 h-24"
+                  />
+                )}
+              </div>
               <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-success rounded-full flex items-center justify-center border-2 border-white">
                 <span className="text-white text-sm">✓</span>
               </div>

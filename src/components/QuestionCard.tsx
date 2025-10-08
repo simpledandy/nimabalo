@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { strings } from '@/lib/strings';
 import { timeAgo } from '@/lib/timeUtils';
-import QuestionActions from './QuestionActions';
+import { ContentActions } from './ContentActions';
 
 type Question = { 
   id: string; 
@@ -34,7 +34,6 @@ interface QuestionCardProps {
 export default function QuestionCard({ 
   question, 
   questionAuthor, 
-  hoveredElement, 
   onMouseEnter, 
   onMouseLeave,
   currentUserId,
@@ -76,11 +75,12 @@ export default function QuestionCard({
             )}
             {/* Edit/Delete Actions */}
             {currentUserId && onQuestionUpdated && onQuestionDeleted && (
-              <QuestionActions
-                question={question}
+              <ContentActions
+                content={question}
+                type="question"
                 currentUserId={currentUserId}
-                onQuestionUpdated={onQuestionUpdated}
-                onQuestionDeleted={onQuestionDeleted}
+                onUpdated={onQuestionUpdated}
+                onDeleted={onQuestionDeleted}
               />
             )}
           </div>

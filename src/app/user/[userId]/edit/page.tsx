@@ -5,10 +5,10 @@ import { useParams, useRouter } from 'next/navigation';
 import { useSession } from '@/lib/useSession';
 import { supabase } from '@/lib/supabaseClient';
 import { strings } from '@/lib/strings';
-import { generateAlternatives } from '@/lib/usernameUtils';
 import UsernameInput from '@/components/UsernameInput';
+import AvatarPicker from '@/components/AvatarPicker';
 import { useConfirmation } from '@/lib/useConfirmation';
-import ConfirmationModal from '@/components/ConfirmationModal';
+import AppModal from '@/components/AppModal';
 import PageHeader from '@/components/PageHeader';
 import PageLayout from '@/components/PageLayout';
 import NotFoundPage from '@/components/NotFoundPage';
@@ -44,7 +44,8 @@ export default function EditProfilePage() {
     username: '',
     bio: '',
     location: '',
-    website: ''
+    website: '',
+    avatar_url: ''
   });
   
   // Username validation
@@ -75,7 +76,8 @@ export default function EditProfilePage() {
     }
     
     fetchProfile();
-  }, [userId, isOwnProfile, router, sessionLoading, currentUser]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, isOwnProfile, sessionLoading, currentUser]);
 
   // Check for unsaved changes
   useEffect(() => {
@@ -106,7 +108,8 @@ export default function EditProfilePage() {
         username: profileData.username || '',
         bio: profileData.bio || '',
         location: profileData.location || '',
-        website: profileData.website || ''
+        website: profileData.website || '',
+        avatar_url: profileData.avatar_url || ''
       };
       setFormData(initialData);
       setOriginalData(initialData);
@@ -172,6 +175,7 @@ export default function EditProfilePage() {
         bio: formData.bio.trim() || null,
         location: formData.location.trim() || null,
         website: formData.website.trim() || null,
+        avatar_url: formData.avatar_url || null,
       };
 
       const { error: updateError } = await supabase
@@ -191,9 +195,10 @@ export default function EditProfilePage() {
         router.push(`/user/${userId}`);
       }, 2000);
 
-    } catch (err: any) {
-      console.error('Error updating profile:', err);
-      setError(err.message || strings.profile.editProfilePage.messages.error);
+    } catch (err) {
+      const error = err as Error;
+      console.error('Error updating profile:', error);
+      setError(error.message || strings.profile.editProfilePage.messages.error);
     } finally {
       setSaving(false);
     }
@@ -284,6 +289,20 @@ export default function EditProfilePage() {
               </div>
             </div>
           )}
+
+          {/* Avatar Section */}
+          <div className="card">
+            <h2 className="text-xl font-bold text-primary mb-6 flex items-center gap-2">
+              <span>🎨</span>
+              Profile Avatar
+            </h2>
+            
+            <AvatarPicker
+              seed={formData.username || currentUser?.email || 'default'}
+              value={formData.avatar_url}
+              onChange={(url) => handleInputChange('avatar_url', url)}
+            />
+          </div>
 
           {/* Basic Information Section */}
           <div className="card">
@@ -435,16 +454,29 @@ export default function EditProfilePage() {
       </div>
 
       {/* Confirmation Modal */}
-      <ConfirmationModal
+      <AppModal
         isOpen={isConfirmOpen}
         onClose={closeConfirm}
-        onConfirm={handleConfirm}
+        icon="⚠️"
         title={confirmConfig.title}
-        message={confirmConfig.message}
-        confirmText={confirmConfig.confirmText}
-        cancelText={confirmConfig.cancelText}
-        confirmButtonStyle="danger"
-      />
+        subtitle={confirmConfig.message}
+        showCloseButton={false}
+      >
+        <div className="flex flex-col gap-3 w-full">
+          <button 
+            onClick={handleConfirm}
+            className="btn-danger w-full text-center py-3 font-bold text-lg hover:scale-105 transition-transform"
+          >
+            {confirmConfig.confirmText}
+          </button>
+          <button 
+            onClick={closeConfirm}
+            className="text-neutral hover:text-primary transition-colors py-2 font-medium"
+          >
+            {confirmConfig.cancelText}
+          </button>
+        </div>
+      </AppModal>
     </PageLayout>
   );
 }

@@ -1,6 +1,5 @@
 import { Metadata } from 'next';
 import './globals.css';
-import NavBar from '@/components/NavBar';
 import ClientRoot from '@/components/ClientRoot';
 
 export const metadata: Metadata = {

@@ -1,15 +1,28 @@
 'use client';
 
 import { useEffect, useState, useRef, useCallback } from "react";
+import dynamic from "next/dynamic";
 import { supabase } from "@/lib/supabaseClient";
 import { useSession } from "@/lib/useSession";
-import { strings, formatString } from "@/lib/strings";
-import { queryWithTimeout, handleSupabaseError } from "@/lib/supabaseUtils";
-import SurpriseCTA from "@/components/SurpriseCTA";
-import AppSidebar from "@/components/AppSidebar";
-import SparkleEffect from "@/components/SparkleEffect";
-import ConfettiEffect from "@/components/ConfettiEffect";
-import AuthModal from "@/components/AuthModal";
+import { strings } from "@/lib/strings";
+
+// Lazy load heavy components for better performance
+const AppSidebar = dynamic(() => import("@/components/AppSidebar"), {
+  ssr: false,
+  loading: () => <div className="hidden lg:block w-80" />
+});
+
+const SparkleEffect = dynamic(() => import("@/components/SparkleEffect"), {
+  ssr: false
+});
+
+const ConfettiEffect = dynamic(() => import("@/components/ConfettiEffect"), {
+  ssr: false
+});
+
+const AppModal = dynamic(() => import("@/components/AppModal"), {
+  ssr: false
+});
 
 type Question = {
   id: string;
@@ -32,7 +45,6 @@ export default function HomePageClient({ initialQuestions }: HomePageClientProps
   const [showSuccess, setShowSuccess] = useState(false);
   const [showSignupPrompt, setShowSignupPrompt] = useState(false);
   const [questions, setQuestions] = useState<Question[]>(initialQuestions);
-  const [loading, setLoading] = useState(false); // Start with false since we have initial data
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
@@ -241,19 +253,37 @@ export default function HomePageClient({ initialQuestions }: HomePageClientProps
           </div>
 
           {/* Show sign in/up prompt if user tries to submit while not logged in */}
-          <AuthModal
+          <AppModal
             isOpen={showSignupPrompt}
             onClose={() => setShowSignupPrompt(false)}
+            icon="🔐"
             title={strings.authModal.titles.askQuestion}
-            message={strings.authModal.messages.askQuestion}
-          />
+            subtitle={strings.authModal.messages.askQuestion}
+          >
+            <div className="flex flex-col gap-3 w-full">
+              <a 
+                href="/auth" 
+                className="btn w-full text-center py-3 font-bold text-lg hover:scale-105 transition-transform"
+              >
+                <span className="mr-2">🔑</span>
+                Tizimga kirish
+              </a>
+              <a 
+                href="/auth?signup=1" 
+                className="btn-secondary w-full text-center py-3 font-bold text-lg hover:scale-105 transition-transform"
+              >
+                <span className="mr-2">✨</span>
+                Ro'yxatdan o'tish
+              </a>
+            </div>
+          </AppModal>
         </div>
         
         {/* Right sidebar - hidden on mobile, visible on desktop */}
         <AppSidebar
           variant="home"
           questions={questions}
-          loading={loading}
+          loading={false}
           onQuestionsUpdate={setQuestions}
           showAuthModal={showAuthModal}
           setShowAuthModal={handleShowAuthModal}
@@ -261,12 +291,30 @@ export default function HomePageClient({ initialQuestions }: HomePageClientProps
       </div>
 
       {/* Auth Modal for "Menga ham qiziq" button */}
-      <AuthModal
+      <AppModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
+        icon="🔐"
         title={strings.authModal.titles.showInterest}
-        message={strings.authModal.messages.showInterest}
-      />
+        subtitle={strings.authModal.messages.showInterest}
+      >
+        <div className="flex flex-col gap-3 w-full">
+          <a 
+            href="/auth" 
+            className="btn w-full text-center py-3 font-bold text-lg hover:scale-105 transition-transform"
+          >
+            <span className="mr-2">🔑</span>
+            Tizimga kirish
+          </a>
+          <a 
+            href="/auth?signup=1" 
+            className="btn-secondary w-full text-center py-3 font-bold text-lg hover:scale-105 transition-transform"
+          >
+            <span className="mr-2">✨</span>
+            Ro'yxatdan o'tish
+          </a>
+        </div>
+      </AppModal>
     </div>
   );
 }

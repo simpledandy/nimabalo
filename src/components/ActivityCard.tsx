@@ -1,7 +1,6 @@
 "use client";
 
 import Link from 'next/link';
-import { timeAgo } from '@/lib/timeUtils';
 import { strings } from '@/lib/strings';
 
 type Activity = {
@@ -11,7 +10,7 @@ type Activity = {
   body?: string;
   created_at: string;
   question_id?: string;
-  questions?: { title: string };
+  questions?: { title: string } | { id: string; title: string }[];
 };
 
 interface ActivityCardProps {
@@ -29,7 +28,13 @@ export default function ActivityCard({ activity, index }: ActivityCardProps) {
   };
 
   const getActivityTitle = () => {
-    return activity.type === 'question' ? activity.title : activity.questions?.title;
+    if (activity.type === 'question') return activity.title;
+    
+    // Handle questions field which can be object or array
+    const questions = activity.questions;
+    if (!questions) return undefined;
+    if (Array.isArray(questions)) return questions[0]?.title;
+    return questions.title;
   };
 
   const getActivityLink = () => {

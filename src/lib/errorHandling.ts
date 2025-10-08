@@ -186,7 +186,7 @@ export class ErrorProcessor {
   /**
    * Get user-friendly error message
    */
-  private getUserFriendlyMessage(type: ErrorType, error: any): string {
+  private getUserFriendlyMessage(type: ErrorType, _error: any): string {
     const messages: Record<ErrorType, string> = {
       [ErrorType.NETWORK_ERROR]: 'Internet aloqasi bilan bog\'liq muammo. Iltimos, qayta urining.',
       [ErrorType.TIMEOUT_ERROR]: 'So\'rov vaqti tugadi. Iltimos, qayta urining.',
@@ -222,7 +222,7 @@ export class ErrorProcessor {
   /**
    * Determine if error should be retried
    */
-  private shouldRetryError(type: ErrorType, error: any): boolean {
+  private shouldRetryError(type: ErrorType, _error: any): boolean {
     const retryableTypes = [
       ErrorType.NETWORK_ERROR,
       ErrorType.TIMEOUT_ERROR,

@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { strings } from '@/lib/strings';
 import { timeAgo } from '@/lib/timeUtils';
 import AnswerPreview from './AnswerPreview';
-import AnswerActions from './AnswerActions';
+import { ContentActions } from './ContentActions';
 
 type Answer = { 
   id: string; 
@@ -124,11 +124,12 @@ export default function AnswerCard({
             </div>
             {/* Edit/Delete Actions */}
             {currentUserId && onAnswerUpdated && onAnswerDeleted && (
-              <AnswerActions
-                answer={answer}
+              <ContentActions
+                content={answer}
+                type="answer"
                 currentUserId={currentUserId}
-                onAnswerUpdated={onAnswerUpdated}
-                onAnswerDeleted={onAnswerDeleted}
+                onUpdated={onAnswerUpdated}
+                onDeleted={onAnswerDeleted}
               />
             )}
           </div>

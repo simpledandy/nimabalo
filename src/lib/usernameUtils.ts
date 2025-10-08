@@ -102,7 +102,7 @@ export async function isUsernameAvailable(username: string, supabase: any): Prom
     }
     
     return { available: true };
-  } catch (err) {
+  } catch {
     return { available: false, error: 'Username mavjudligini tekshirishda xatolik' };
   }
 }

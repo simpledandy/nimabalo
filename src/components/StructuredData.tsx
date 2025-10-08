@@ -1,6 +1,6 @@
 interface StructuredDataProps {
   type: 'Website' | 'Question' | 'QAPage';
-  data: any;
+  data: Record<string, any>;
 }
 
 export default function StructuredData({ type, data }: StructuredDataProps) {
