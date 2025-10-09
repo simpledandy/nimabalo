@@ -212,6 +212,7 @@ export async function GET(req: NextRequest) {
         });
 
         if (recoveryErr || !recoveryData?.properties?.action_link) {
+          console.error('Recovery link generation failed:', recoveryErr);
           throw createError(
             ErrorType.SUPABASE_ERROR,
             'Failed to generate authentication link',
@@ -220,12 +221,28 @@ export async function GET(req: NextRequest) {
           );
         }
 
-        // Extract tokens from recovery link
+        console.log('Recovery link generated:', recoveryData.properties.action_link);
+
+        // Extract tokens from recovery link - check both query params and hash
         const linkUrl = new URL(recoveryData.properties.action_link);
         accessToken = linkUrl.searchParams.get('access_token');
         refreshToken = linkUrl.searchParams.get('refresh_token');
 
+        // If not in query params, check hash (format: #access_token=...&refresh_token=...)
         if (!accessToken || !refreshToken) {
+          const hash = linkUrl.hash.substring(1); // Remove the # symbol
+          const hashParams = new URLSearchParams(hash);
+          accessToken = accessToken || hashParams.get('access_token');
+          refreshToken = refreshToken || hashParams.get('refresh_token');
+          console.log('Tokens found in hash:', !!accessToken, !!refreshToken);
+        }
+
+        if (!accessToken || !refreshToken) {
+          console.error('Failed to extract tokens from link:', {
+            hasSearchParams: linkUrl.searchParams.toString(),
+            hasHash: linkUrl.hash,
+            linkUrl: recoveryData.properties.action_link
+          });
           throw createError(
             ErrorType.SUPABASE_ERROR,
             'No session tokens in response',

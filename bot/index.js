@@ -382,8 +382,6 @@ bot.on('callback_query', async (callbackQuery) => {
       await handleFeedbackResponse(chatId, tgUser, data);
     } else if (data.startsWith('rating_')) {
       await handleRatingResponse(chatId, tgUser, data);
-    } else if (data.startsWith('feedback_type_')) {
-      await handleFeedbackTypeSelection(chatId, tgUser, data);
     } else if (data.startsWith('admin_')) {
       // Check if user is admin
       if (String(tgUser.id) !== String(ADMIN_TELEGRAM_ID)) {
@@ -643,21 +641,9 @@ async function handleFeedbackButton(chatId, tgUser) {
     `• Qanday yaxshilash mumkin?\n` +
     `• Qanday muammolar bor?\n` +
     `• Qanday yangi funksiyalar kerak?\n\n` +
-    `💡 Xabaringizni yozing va yuboring. Barcha fikr-mulohazalar admin\'ga yuboriladi.`;
+    `✍️ Xabaringizni yozing va yuboring! Barcha fikr-mulohazalar admin\'ga yuboriladi.`;
   
-  const feedbackKeyboard = {
-    reply_markup: {
-      inline_keyboard: [
-        [{ text: '🐛 Xatolik haqida', callback_data: 'feedback_type_bug' }],
-        [{ text: '💡 Taklif', callback_data: 'feedback_type_suggestion' }],
-        [{ text: '❓ Savol', callback_data: 'feedback_type_question' }],
-        [{ text: '⭐ Baholash', callback_data: 'feedback_type_rating' }],
-        [{ text: '✍️ Boshqa', callback_data: 'feedback_type_other' }]
-      ]
-    }
-  };
-  
-  await bot.sendMessage(chatId, feedbackMessage, feedbackKeyboard);
+  await bot.sendMessage(chatId, feedbackMessage);
 }
 
 async function handleFeedbackMessage(chatId, tgUser, messageText) {
@@ -921,24 +907,7 @@ async function handleAdminBroadcast(chatId) {
 }
 
 // Handle feedback type selection
-async function handleFeedbackTypeSelection(chatId, tgUser, data) {
-  const feedbackType = data.replace('feedback_type_', '');
-  
-  const typeMessages = {
-    'bug': '🐛 **Xatolik haqida:**\n\nIltimos, qanday xatolik yuz berganini batafsil yozing:\n• Qayerda?\n• Qachon?\n• Qanday?\n\nXabaringizni yuboring:',
-    'suggestion': '💡 **Taklif:**\n\nNimabalo\'ni qanday yaxshilashimiz mumkin?\n• Yangi funksiyalar\n• Dizayn o\'zgarishlari\n• Boshqa takliflar\n\nXabaringizni yuboring:',
-    'question': '❓ **Savol:**\n\nNimabalo haqida savolingiz bormi?\n• Qanday foydalanish?\n• Funksiyalar haqida\n• Boshqa savollar\n\nSavolingizni yuboring:',
-    'rating': '⭐ **Baholash:**\n\nNimabalo\'ni qanday baholaysiz?\n• Umumiy tajriba\n• Foydalanish qulayligi\n• Dizayn\n\nFikringizni yuboring:',
-    'other': '✍️ **Boshqa:**\n\nBoshqa fikr-mulohazangiz bormi?\n\nXabaringizni yuboring:'
-  };
-  
-  const message = typeMessages[feedbackType] || 'Fikringizni yuboring:';
-  
-  await bot.sendMessage(chatId, message);
-  
-  // Store the feedback type for the user (in a real implementation, you'd use a state management system)
-  // For now, we'll just acknowledge the selection
-}
+// Feedback type selection removed - users can now directly type their feedback
 
 // Graceful shutdown
 const shutdown = async () => {
