@@ -33,6 +33,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Savollar Ro'yxati - Nimabalo",
     description: "Nimabalo'dagi barcha savollarni ko'ring va javob bering.",
+    locale: "uz_UZ",
     type: "website",
     siteName: "Nimabalo",
     url: "https://nimabalo.uz/questions",

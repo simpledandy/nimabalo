@@ -33,6 +33,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Nimabalo - Savollar va Javoblar Platformasi",
     description: "O'zbek tilida savollar bering va javoblar oling. Anonim muhitda fikr almashing.",
+    locale: "uz_UZ",
     type: "website",
     siteName: "Nimabalo",
     url: "https://nimabalo.uz",

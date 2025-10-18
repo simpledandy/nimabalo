@@ -27,8 +27,11 @@ export const metadata: Metadata = {
         alt: "Nimabalo Logo",
       },
     ],
-    locale: "en_US",
+    locale: "uz_UZ",
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
   },
   icons: {
     icon: "/favicon.svg",
@@ -38,7 +41,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="uz">
       <head>
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -46,11 +49,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="manifest" href="/manifest.json" />
-        <meta property="og:title" content="Nimabalo" />
-        <meta property="og:description" content="Savollaringizga javob toping" />
-        <meta property="og:image" content="/logo.svg" />
-        <meta property="og:url" content="https://nimabalo.uz/" />
-        <meta name="twitter:card" content="summary_large_image" />
         {/* Google Search Console verification - Uncomment and add your verification code */}
         <meta name="google-site-verification" content="j5Lw5f1rbcLiwar3-5KOphlKjESosNJ6SO2cw4dTpMQ" />
       </head>
