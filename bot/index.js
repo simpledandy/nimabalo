@@ -494,7 +494,7 @@ async function askThirdQuestion(chatId, tgUser) {
 async function finishFeedbackFlow(chatId, tgUser) {
   const thankYouMessage = `🎉 Rahmat, ${tgUser.first_name || 'do\'st'}!\n\n` +
     `📝 Sizning fikr-mulohazangiz biz uchun juda qimmatli!\n` +
-    `💡 Bu ma\'lumotlar Nimabalo\'ni yanada yaxshilashga yordam beradi.\n\n` +
+    `💡 Bu ma\'lumotlar Nimabaloni yanada yaxshilashga yordam beradi.\n\n` +
     `🏠 Endi bosh sahifaga qayting va qiziqarli savollar bilan tanishing!`;
   
   const finalKeyboard = {
@@ -754,7 +754,7 @@ async function handleRatingResponse(chatId, tgUser, data) {
     [tgUser.id, 'rating', ratingText]
   );
   
-  const thankYouMessage = `⭐ Rahmat! Siz Nimabalo\'ni ${ratingText} bilan baholadingiz!\n\n` +
+  const thankYouMessage = `⭐ Rahmat! Siz Nimabaloni ${ratingText} bilan baholadingiz!\n\n` +
     `💡 Sizning fikringiz biz uchun juda muhim va yaxshilanish uchun ishlatiladi.`;
   
   await bot.sendMessage(chatId, thankYouMessage);
@@ -931,5 +931,3 @@ process.on('SIGTERM', shutdown);
 
 // eslint-disable-next-line no-console
 console.log('Telegram bot is starting...');
-
-

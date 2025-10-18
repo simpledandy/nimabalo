@@ -8,7 +8,7 @@
 ```
 Then paste:
 ```
-🌟 Nimabalo'ga xush kelibsiz!
+🌟 Nimabaloga xush kelibsiz!
 
 Nimabalo - bu O'zbekiston uchun maxsus savol-javob platformasi. Bu yerda siz:
 
