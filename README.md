@@ -74,18 +74,13 @@ See our [CONTRIBUTING.md](./CONTRIBUTING)
 ## 🛣️ Roadmap (Work-in-Progress)
 
  - Clean and simplify documentation
-
  - Finalize visual identity and design system
-
  - Refine moderation & community model
-
  - Add badges and gamified achievements
-
  - Improve Supabase queries and security
-
  - Launch public beta at nimabalo.uz
 
-⚖️ License
+## ⚖️ License
 
 Licensed under the [Apache License 2.0](./LICENSE).
 Copyright © 2025 Ruxsoraxon Kenjayeva
