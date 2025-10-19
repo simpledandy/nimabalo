@@ -1,32 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
 import { ErrorType, createError, processError, handleError } from '@/lib/errorHandling';
-
-// Env: DATABASE_URL, NEXT_PUBLIC_SITE_URL
-
-// Lazy-load database pool to prevent connection issues
-let pool: Pool | null = null;
-function getPool() {
-  if (!pool) {
-    if (!process.env.DATABASE_URL) {
-      throw new Error('DATABASE_URL is not configured');
-    }
-    pool = new Pool({ 
-      connectionString: process.env.DATABASE_URL, 
-      ssl: { rejectUnauthorized: false },
-      max: 5, // Maximum pool size
-      idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 10000,
-    });
-    
-    // Handle pool errors
-    pool.on('error', (err) => {
-      console.error('Unexpected database pool error:', err);
-    });
-  }
-  return pool;
-}
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
@@ -36,11 +10,7 @@ export async function GET(req: NextRequest) {
   if (!tgToken) {
     return NextResponse.redirect(`${siteUrl}/auth?error=invalid_token&message=${encodeURIComponent('Token not provided')}`);
   }
-  if (!process.env.DATABASE_URL) {
-    return NextResponse.redirect(`${siteUrl}/auth?error=server_config&message=${encodeURIComponent('Server configuration error')}`);
-  }
-
-  const dbPool = getPool();
+  const admin = getSupabaseAdmin();
   
   try {
     return await handleError(async () => {
@@ -49,21 +19,21 @@ export async function GET(req: NextRequest) {
       // 1) Validate token with enhanced error handling
       let tokenRow;
       try {
-        const { rows } = await dbPool.query(
-          `SELECT * FROM tg_login_tokens 
-           WHERE token = $1 
-           AND consumed_at IS NULL 
-           AND expires_at > NOW() 
-           LIMIT 1`,
-          [tgToken]
-        );
+        const { data: tokens, error: tokenErr } = await admin
+          .from('tg_login_tokens')
+          .select('*')
+          .eq('token', tgToken)
+          .is('consumed_at', null)
+          .gt('expires_at', new Date().toISOString())
+          .limit(1)
+          .single();
         
-        if (!rows.length) {
+        if (tokenErr || !tokens) {
           console.log('Token not found or expired');
           return NextResponse.redirect(`${siteUrl}/auth?error=token_expired&message=${encodeURIComponent('Token expired or already used')}`);
         }
         
-        tokenRow = rows[0];
+        tokenRow = tokens;
         console.log('Token validated for telegram_id:', tokenRow.telegram_id);
       } catch (dbErr) {
         console.error('Database query error:', dbErr);
@@ -73,10 +43,7 @@ export async function GET(req: NextRequest) {
           'Ma\'lumotlar bazasi bilan bog\'lanishda xatolik',
           { action: 'validate_token', metadata: { error: dbErr } }
         );
-      }
-
-      const admin = getSupabaseAdmin();
-      console.log('Supabase admin client initialized');
+  }
 
       // 2) Find or create a user: we will use a synthetic email based on telegram id
       const telegramId = String(tokenRow.telegram_id);
@@ -255,12 +222,15 @@ export async function GET(req: NextRequest) {
       }
 
       // 4) Mark token as consumed
-      await dbPool.query(
-        `UPDATE tg_login_tokens 
-         SET consumed_at = NOW() 
-         WHERE token = $1`,
-        [tgToken]
-      );
+      const { error: consumeErr } = await admin
+        .from('tg_login_tokens')
+        .update({ consumed_at: new Date().toISOString() })
+        .eq('token', tgToken);
+
+      if (consumeErr) {
+        console.error('Error marking token as consumed:', consumeErr);
+        // Don't fail the auth flow, just log the error
+      }
 
       console.log('✅ Telegram authentication successful for user:', userId);
 

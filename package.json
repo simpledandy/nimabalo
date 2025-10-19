@@ -18,13 +18,12 @@
     "nanoid": "^5.0.7",
     "next": "^14.2.5",
     "node-telegram-bot-api": "^0.66.0",
-    "pg": "^8.12.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@types/node": "^20.14.10",
-    "@types/pg": "^8.15.5",
+    "@types/node-telegram-bot-api": "^0.64.12",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "autoprefixer": "^10.4.21",
