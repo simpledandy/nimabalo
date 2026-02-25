@@ -60,7 +60,8 @@ src/
 ├── app/          # Next.js routes and layouts
 ├── components/   # UI components
 ├── lib/          # Helpers, hooks, Supabase client
-└── styles/       # Tailwind and design tokens
+├── styles/       # Tailwind and design tokens
+└── supabase/     # DB schema context and onboarding notes
 ```
 
 ## 🤝 Contributing
@@ -68,8 +69,20 @@ src/
 We welcome learners, dreamers, and curious minds.
 You can help by fixing bugs, improving design, or simply joining discussions.
 
-See our [CONTRIBUTING.md](./CONTRIBUTING)
+See our [CONTRIBUTING.md](./CONTRIBUTING.md)
  for details.
+
+### 🔐 Environment Setup
+
+Create your local environment file from the example template before running the app:
+
+```bash
+cp .env.example .env.local
+```
+
+Then fill in the required Supabase values in `.env.local`.
+
+For database setup and schema context, see [`supabase/README.md`](./supabase/README.md).
 
 ## 🛣️ Roadmap (Work-in-Progress)
 

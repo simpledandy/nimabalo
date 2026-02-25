@@ -74,14 +74,18 @@ export const revalidate = 30;
 async function getQuestions(): Promise<Question[]> {
   try {
     // Check if environment variables are available
-    console.log('🔍 Server-side env check:', {
-      url: process.env.NEXT_PUBLIC_SUPABASE_URL ? '✅ SET' : '❌ NOT SET',
-      serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY ? '✅ SET' : '❌ NOT SET'
-    });
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('🔍 Server-side env check:', {
+        url: process.env.NEXT_PUBLIC_SUPABASE_URL ? '✅ SET' : '❌ NOT SET',
+        serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY ? '✅ SET' : '❌ NOT SET'
+      });
+    }
     
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      console.warn('⚠️ Supabase environment variables not available during build, returning empty array');
-      console.warn('⚠️ Make sure .env.local exists and dev server was restarted');
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('⚠️ Supabase environment variables not available during build, returning empty array');
+        console.warn('⚠️ Make sure .env.local exists and dev server was restarted');
+      }
       return [];
     }
 
@@ -97,7 +101,9 @@ async function getQuestions(): Promise<Question[]> {
       return [];
     }
     
-    console.log(`✅ Fetched ${data?.length || 0} questions from Supabase`);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`✅ Fetched ${data?.length || 0} questions from Supabase`);
+    }
     return data || [];
   } catch (err) {
     console.error('❌ Exception fetching questions:', err);
