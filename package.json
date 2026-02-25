@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "next lint",
     "bot": "node bot/index.js",
-    "check-db": "node scripts/check-database.js"
+    "check-db": "node scripts/check-database.js",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@supabase/auth-ui-react": "^0.4.7",
